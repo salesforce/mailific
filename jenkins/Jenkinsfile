@@ -1,0 +1,79 @@
+@Library('sfci-pipeline-sharedlib@master')
+
+import net.sfdc.dci.BuildUtils
+import net.sfdc.dci.MavenUtils
+
+env.GUS_TEAM_NAME = "Email Infrastructure"
+env.RELEASE_BRANCHES = ['master']
+
+def releaseParameters = {
+    parameters([
+        booleanParam(
+                defaultValue: BuildUtils.isReleaseBuild(env),
+                description: 'Do you want to release?',
+                name: 'RELEASE'
+        ),
+        string(
+                defaultValue: MavenUtils.getDefaultReleaseVersion(this),
+                description: 'Enter the release version',
+                name: 'RELEASE_VERSION'
+        ),
+        string(
+                defaultValue: "${BuildUtils.incrementVersion(MavenUtils.getDefaultReleaseVersion(this))}",
+                description: 'Next Release Version',
+                name: 'NEXT_RELEASE_VERSION'
+        ),
+    ])
+}
+
+def envDef = [
+    releaseParameters: releaseParameters,
+    buildImage : '331455399823.dkr.ecr.us-east-2.amazonaws.com/sfci/sfci/centos7-sfci-jdk11-maven:a505f62',
+    emailTo: 'jhumphreys@salesforce.com'
+]
+
+executePipeline(envDef) {
+    stage('Init') {
+        checkout scm
+        mavenInit()
+    }
+
+    stage('Build') {
+        if(params.RELEASE) {
+            echo 'Skipping the build as it will be run during the release prepare'
+        } else {
+            mavenBuild()
+        }
+    }
+
+/*
+    stage('Format code') {
+        //first delete any git hooks created by mavenBuild
+        sh "rm -rf ./.git/hooks/*"
+
+        //now checkout branch and apply formatting before committing
+        def commitMessage = "[SFCI] Reformat code @rev svc-email-infra@ @skip-ci@ "
+        sh "git checkout ${env.BRANCH_NAME} && git checkout ."
+        sh "mvn --settings .m2/settings.xml  -Dmaven.repo.local=.m2/repository com.coveo:fmt-maven-plugin:format"
+        def ret = sh(script: 'git status --porcelain', returnStdout: true)
+        if (ret.trim().equals("")) {
+            echo('No reformatting required. Skipping commit.')
+        } else {
+            sh "git commit -am '${commitMessage}'"
+            sh "git pull origin ${env.BRANCH_NAME}"
+            sh "git push origin ${env.BRANCH_NAME}"
+        }
+    }
+*/
+    if(params.RELEASE) {
+        stage('Prepare Release') {
+            echo "Preparing maven release"
+            mavenReleasePrepare()
+        }
+
+        stage('Release') {
+            echo "Performing maven release"
+            mavenReleasePerform()
+        }
+    }
+}

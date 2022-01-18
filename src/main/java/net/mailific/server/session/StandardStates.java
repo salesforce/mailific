@@ -1,0 +1,35 @@
+/*
+ * Copyright 2021 Joe Humphreys
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+package net.mailific.server.session;
+
+/**
+ * Enumeration of the typical session states. (Extensions might create additional states.)
+ *
+ * @author jhumphreys
+ * @since 1.0.0
+ */
+public enum StandardStates implements SessionState {
+  BEFORE_CONNECT,
+  CONNECTED,
+  CONNECT_REJECTED,
+  AFTER_EHLO,
+  AFTER_MAIL,
+  AFTER_RCPT,
+  READING_DATA,
+  ENDING_SESSION,
+  ;
+}

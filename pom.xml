@@ -1,0 +1,192 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.mailific</groupId>
+  <artifactId>mailific-serverlib</artifactId>
+  <version>1.0.0</version>
+  <name>SMTP Server Library</name>
+
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <coveo-fmt-maven-plugin.version>2.9</coveo-fmt-maven-plugin.version> <!-- https://mvnrepository.com/artifact/com.coveo/fmt-maven-plugin -->
+    <versions-maven-plugin.version>2.7</versions-maven-plugin.version> <!-- https://www.mojohaus.org/versions-maven-plugin/usage.html -->
+    <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version> <!-- https://maven.apache.org/plugins/maven-checkstyle-plugin/history.html -->
+    <maven-git-code-format.version>1.31</maven-git-code-format.version> <!-- https://mvnrepository.com/artifact/com.cosium.code/maven-git-code-format -->
+    <jacoco.version>0.8.6</jacoco.version>
+  </properties>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.1.64.Final</version>
+    </dependency>
+
+  <!--  TEST DEPENDENCIES -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.3.3</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+<!--
+  <distributionManagement>
+    <repository>
+      <id>nexus</id>
+      <url>https://nexus.soma.salesforce.com/nexus/content/repositories/releases/</url>
+    </repository>
+  </distributionManagement>
+-->
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <configLocation>checkstyle.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <sourceDirectories>
+                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+              </sourceDirectories>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- =================================== -->
+      <!-- Create google code formatter git hook -->
+      <!-- =================================== -->
+      <plugin>
+        <groupId>com.cosium.code</groupId>
+        <artifactId>maven-git-code-format</artifactId>
+        <version>${maven-git-code-format.version}</version>
+        <executions>
+          <execution>
+            <id>formatter-git-hook</id> <!-- plugin execution identifier -->
+            <goals>
+              <goal>install-hooks</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- ============================================================ -->
+      <!-- Maven Versions plugin provides some useful tools for keeping -->
+      <!-- up-to-date on our dependencies.                              -->
+      <!-- ============================================================ -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>${versions-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>versioning</id>
+            <phase>site</phase>
+            <goals>
+              <goal>update-parent</goal>
+              <goal>use-latest-versions</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Without this, it checks all the dependencies in the
+               management section of the parent. -->
+          <processDependencyManagement>false</processDependencyManagement>
+        </configuration>
+      </plugin>
+
+      <!-- ====================================================== -->
+      <!-- Code formatter. Runs whenever you build. Deal with it. -->
+      <!-- ====================================================== -->
+      <plugin>
+        <groupId>com.coveo</groupId>
+        <artifactId>fmt-maven-plugin</artifactId>
+        <version>${coveo-fmt-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>net.mailific.main.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+            <phase>package</phase> <!-- bind to the packaging phase -->
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.1</version>
+      </extension>
+    </extensions>
+  </build>
+</project>
