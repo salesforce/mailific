@@ -46,6 +46,7 @@ import net.mailific.server.extension.starttls.StartTls;
 import net.mailific.server.netty.SmtpServerHandler.TlsStartListener;
 import net.mailific.server.session.Reply;
 import net.mailific.server.session.SmtpSession;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -76,9 +77,11 @@ public class SmtpServerHandlerTest {
 
   SmtpServerHandler it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     when(ctx.executor()).thenReturn(eventExecutor);
     when(ctx.channel()).thenReturn(socketChannel);
@@ -95,6 +98,11 @@ public class SmtpServerHandlerTest {
     sslContext = new MockSslContext();
 
     it = new SmtpServerHandler(sslContext);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -161,7 +169,7 @@ public class SmtpServerHandlerTest {
   }
 
   @Test
-  public void channelRead_withReply() throws Exception {
+  public void channelRead_withImmediateReply() throws Exception {
     final String line = "foo\r\n";
     MockByteBuf buf = new MockByteBuf(line);
     ArgumentCaptor<byte[]> lineCaptor = ArgumentCaptor.forClass(byte[].class);
@@ -172,6 +180,22 @@ public class SmtpServerHandlerTest {
     assertArrayEquals(line.getBytes("UTF-8"), lineCaptor.getValue());
     verify(ctx).write(Reply._250_OK.replyString());
     verify(ctx).flush();
+    verify(channelFuture, never()).addListener(ChannelFutureListener.CLOSE);
+    assertTrue(buf.released);
+  }
+
+  @Test
+  public void channelRead_withNonImmediateReply() throws Exception {
+    final String line = "foo\r\n";
+    MockByteBuf buf = new MockByteBuf(line);
+    ArgumentCaptor<byte[]> lineCaptor = ArgumentCaptor.forClass(byte[].class);
+    when(session.consumeLine(lineCaptor.capture())).thenReturn(Reply._500_UNRECOGNIZED_BUFFERED);
+
+    it.channelRead(ctx, buf);
+
+    assertArrayEquals(line.getBytes("UTF-8"), lineCaptor.getValue());
+    verify(ctx).write(Reply._500_UNRECOGNIZED_BUFFERED.replyString());
+    verify(ctx, never()).flush();
     verify(channelFuture, never()).addListener(ChannelFutureListener.CLOSE);
     assertTrue(buf.released);
   }
@@ -268,5 +292,11 @@ public class SmtpServerHandlerTest {
   public void channelInactive() throws Exception {
     it.channelInactive(ctx);
     verify(session).clearMailObject();
+  }
+
+  @Test
+  public void channelReadComplete() throws Exception {
+    it.channelReadComplete(ctx);
+    verify(ctx).flush();
   }
 }

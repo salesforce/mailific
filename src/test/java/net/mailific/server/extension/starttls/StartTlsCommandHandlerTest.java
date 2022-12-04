@@ -34,6 +34,7 @@ import net.mailific.server.session.Reply;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -47,10 +48,17 @@ public class StartTlsCommandHandlerTest {
 
   final InetSocketAddress remoteAddress = new InetSocketAddress(25);
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     it = new StartTlsCommandHandler();
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

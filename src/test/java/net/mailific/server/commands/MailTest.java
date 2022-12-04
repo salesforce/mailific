@@ -39,6 +39,7 @@ import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -53,13 +54,20 @@ public class MailTest {
 
   Mail it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     when(mailObjectFactory.newMailObject(session)).thenReturn(mailObject);
 
     it = new Mail(mailObjectFactory);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

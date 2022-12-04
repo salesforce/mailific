@@ -52,6 +52,7 @@ import net.mailific.server.commands.Rcpt;
 import net.mailific.server.commands.Rset;
 import net.mailific.server.extension.EightBitMime;
 import net.mailific.server.extension.Extension;
+import net.mailific.server.extension.Pipelining;
 import net.mailific.server.extension.SmtpUtf8;
 import net.mailific.server.extension.auth.AuthCheck;
 import net.mailific.server.reference.BaseMailObjectFactory;
@@ -142,12 +143,15 @@ public class MainTest {
     server.shutdown();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void harmlessExtensions() {
     List<Extension> actual = Main.harmlessExtensions();
     assertThat(
-        actual, containsInAnyOrder(instanceOf(EightBitMime.class), instanceOf(SmtpUtf8.class)));
+        actual,
+        containsInAnyOrder(
+            instanceOf(EightBitMime.class),
+            instanceOf(SmtpUtf8.class),
+            instanceOf(Pipelining.class)));
   }
 
   @Test
@@ -257,6 +261,7 @@ public class MainTest {
     assertEquals(InetAddress.getLocalHost().getCanonicalHostName(), Main.defaultListenHost());
   }
 
+  @SuppressWarnings({"removal"})
   @Test
   public void defaultListenHost_error() throws Exception {
     SecurityManager mgr = System.getSecurityManager();

@@ -44,6 +44,7 @@ import net.mailific.server.MailObject;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.extension.Extension;
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -70,15 +71,22 @@ public class SmtpSessionImpTest {
 
   final InetSocketAddress remoteAddress = new InetSocketAddress(25);
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     it = new SmtpSessionImp(remoteAddress, commandMap, null);
 
     when(lineConsumer1.consume(same(it), argThat(new LineArgMatcher(line))))
         .thenReturn(transition1);
     when(lineConsumer2.consume(same(it), argThat(new LineArgMatcher(line))))
         .thenReturn(transition2);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

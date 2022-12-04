@@ -49,11 +49,13 @@ public class BaseMailObject implements MailObject {
   private List<ParsedCommandLine> acceptedRcpts = new ArrayList<>();
   private Map<String, Object> extensionMaterial = new HashMap<>();
 
+  public static final Reply COMPLETE_MAIL_OK = new Reply(250, "Message accepted.", false);
+
   @Override
   public Reply mailFrom(ParsedCommandLine mailFrom) {
     Objects.requireNonNull(mailFrom, "MAIL FROM line may not be null");
     this.mailFrom = mailFrom;
-    return Reply._250_OK;
+    return new Reply(250, String.format("sender %s OK", mailFrom.getPath()), false);
   }
 
   @Override
@@ -88,7 +90,7 @@ public class BaseMailObject implements MailObject {
    *     should be rejected.
    */
   public Reply offerRecipient(ParsedCommandLine rcpt) {
-    return Reply._250_OK;
+    return new Reply(250, String.format("recipient %s OK", rcpt.getPath()), false);
   }
 
   @Override
@@ -106,13 +108,15 @@ public class BaseMailObject implements MailObject {
 
   @Override
   public Reply complete() {
-    return Reply._250_OK;
+    return COMPLETE_MAIL_OK;
   }
 
   @Override
   public void dispose() {}
 
-  /** @return All of the accepted recipients' email addresses. */
+  /**
+   * @return All of the accepted recipients' email addresses.
+   */
   @Override
   public List<String> getForwardPathMailBoxes() {
     return acceptedRcpts.stream().map(p -> p.getPath()).collect(Collectors.toList());

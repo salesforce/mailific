@@ -1,4 +1,4 @@
-package net.mailific.server.extension.auth;
+package net.mailific.server.extension;
 
 /*-
  * #%L
@@ -20,35 +20,28 @@ package net.mailific.server.extension.auth;
  * #L%
  */
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertEquals;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-public class PlainMechanismTest {
+public class PipeliningTest {
 
-  @Mock AuthCheck authCheck;
-
-  PlainMechanism it;
-
-  private AutoCloseable closeable;
-
-  @Before
-  public void setUp() {
-    closeable = MockitoAnnotations.openMocks(this);
-    it = new PlainMechanism(authCheck);
-  }
-
-  @After
-  public void releaseMocks() throws Exception {
-    closeable.close();
-  }
+  Pipelining it = new Pipelining();
 
   @Test
   public void name() {
-    assertEquals("PLAIN", it.getName());
+    assertEquals(Pipelining.NAME, it.getName());
+  }
+
+  @Test
+  public void ehloKeyword() {
+    assertEquals(Pipelining.EHLO_KEYWORD, it.getEhloKeyword());
+  }
+
+  @Test
+  public void verbs() {
+    assertThat(it.commandHandlers(), empty());
   }
 }

@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import java.nio.charset.StandardCharsets;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.SaslException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,9 +55,11 @@ public class LoginSaslServerTest {
 
   @Mock AuthCheck authCheck;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     authCallback = new AuthorizeCallback(A_USERNAME, A_USERNAME);
     authCallback.setAuthorized(true);
@@ -64,6 +67,11 @@ public class LoginSaslServerTest {
     Mockito.when(authCheck.authorize(null, A_USERNAME, A_PASSWORD)).thenReturn(authCallback);
 
     it = new LoginSaslServer(authCheck);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

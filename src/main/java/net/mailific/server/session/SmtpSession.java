@@ -35,7 +35,9 @@ import net.mailific.server.extension.Extension;
  */
 public interface SmtpSession {
 
-  /** @return the address of the client. */
+  /**
+   * @return the address of the client.
+   */
   InetSocketAddress getRemoteAddress();
 
   /**
@@ -97,13 +99,19 @@ public interface SmtpSession {
    */
   Collection<Extension> getSupportedExtensions();
 
-  /** @return The EHLO command line (if any) that was supplied by the client */
+  /**
+   * @return The EHLO command line (if any) that was supplied by the client
+   */
   ParsedCommandLine getEhloCommandLine();
 
-  /** @param ehlo EHLO command line sent by client. */
+  /**
+   * @param ehlo EHLO command line sent by client.
+   */
   void setEhloCommandLine(ParsedCommandLine ehlo);
 
-  /** @return the Mail Object currently being communicated, if any. */
+  /**
+   * @return the Mail Object currently being communicated, if any.
+   */
   MailObject getMailObject();
 
   // TODO: why is this exposed?
@@ -113,14 +121,17 @@ public interface SmtpSession {
   /**
    * Call when the data for a mail object has been completely communicated.
    *
-   * @return The response that should be given to the DATA command just completed.
+   * @return The response that should be given to the DATA command just completed. Note that if
+   *     successful, this Reply should have immediate set to false to support Pipelining.
    */
   Reply completeMailObject();
 
   /** Discard any existing mail object being worked on. */
   void clearMailObject();
 
-  /** @return true if TLS has been started using the STARTTLS extension */
+  /**
+   * @return true if TLS has been started using the STARTTLS extension
+   */
   boolean isTlsStarted();
 
   /**

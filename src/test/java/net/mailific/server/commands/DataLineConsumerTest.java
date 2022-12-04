@@ -36,6 +36,7 @@ import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,13 +53,20 @@ public class DataLineConsumerTest {
 
   DataLineConsumer it = new DataLineConsumer();
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     // TODO verify logging
 
     when(session.getMailObject()).thenReturn(mailObject);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.SaslException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,9 +49,11 @@ public class PlainSaslServerTest {
 
   @Mock AuthCheck authCheck;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     authWithAuthz = new AuthorizeCallback(USERNAME, AUTHZID);
     authWithAuthz.setAuthorized(true);
@@ -65,6 +68,11 @@ public class PlainSaslServerTest {
         .thenReturn(authNoAuthz);
 
     it = new PlainSaslServer(authCheck);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

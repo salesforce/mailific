@@ -32,6 +32,7 @@ import net.mailific.server.extension.auth.TransitionMatcher;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,11 +44,18 @@ public class HeloTest {
 
   Helo it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     it = new Helo("foo");
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

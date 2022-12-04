@@ -101,7 +101,19 @@ public class SmtpServerHandler extends ChannelInboundHandlerAdapter {
       }
       if (reply != Reply.DO_NOT_REPLY) {
         ChannelFuture future = ctx.write(reply.replyString());
-        ctx.flush();
+        // In most cases, the response is turned immediately. But to support buffered responses when
+        // clients
+        // use Pipelining, certain replies do not cause an immediate flush. Those will be flushed
+        // when the
+        // input buffer is empty, which results in a call to #channelReadComplete. That also takes
+        // care of
+        // the case where a non-Pipelining client has issued a command with a non-immediate
+        // response. If we
+        // trusted clients to only pipeline the commands they should, we could dispense with this
+        // flush entirely.
+        if (reply.isImmediate()) {
+          ctx.flush();
+        }
         if (reply.getCode() == 221) {
           // TODO: instead of being triggered by a code, there should probably
           // be a shouldShutDown method in session
@@ -111,6 +123,15 @@ public class SmtpServerHandler extends ChannelInboundHandlerAdapter {
     } finally {
       buf.release();
     }
+  }
+
+  /**
+   * If there are buffered responses (because Pipelining is being used by the client) then they
+   * should be flushed whenever the input buffer is empty.
+   */
+  @Override
+  public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    ctx.flush();
   }
 
   private byte[] byteBufToArray(ByteBuf buf) throws IOException {

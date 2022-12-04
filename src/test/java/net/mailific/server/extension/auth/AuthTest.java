@@ -65,9 +65,11 @@ public class AuthTest {
 
   Auth it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     saslServerFactory = new MockSaslServerFactory();
 
@@ -88,6 +90,11 @@ public class AuthTest {
   public void tearDown() {
     // Undo the change to Security that was done in Auth constructor.
     Security.removeProvider("SmtpAuthSaslProvider");
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

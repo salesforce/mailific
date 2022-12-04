@@ -39,6 +39,7 @@ import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -53,22 +54,31 @@ public class RcptTest {
 
   Rcpt it = new Rcpt();
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     when(session.getMailObject()).thenReturn(mailObject);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
   public void incompleteCommand() {
     Transition t = it.handleValidCommand(session, "RCPT");
-    assertThat(t, TransitionMatcher.with(Reply._500_UNRECOGNIZED, SessionState.NO_STATE_CHANGE));
+    assertThat(
+        t, TransitionMatcher.with(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE));
   }
 
   @Test
   public void syntaxError() {
     Transition t = it.handleValidCommand(session, "RCPT OF:<joe@example.com>");
-    assertThat(t, TransitionMatcher.with(Reply._500_UNRECOGNIZED, SessionState.NO_STATE_CHANGE));
+    assertThat(
+        t, TransitionMatcher.with(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE));
   }
 
   @Test
@@ -96,7 +106,8 @@ public class RcptTest {
   public void unparseable() {
     Transition t = it.handleValidCommand(session, "RCPT TO:!notanaddress!!");
 
-    assertThat(t, TransitionMatcher.with(Reply._501_BAD_ARGS, SessionState.NO_STATE_CHANGE));
+    assertThat(
+        t, TransitionMatcher.with(Reply._501_BAD_ARGS_BUFFERED, SessionState.NO_STATE_CHANGE));
   }
 
   @Test

@@ -34,6 +34,7 @@ import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -53,9 +54,11 @@ public class AuthLineConsumerTest {
 
   @Mock SaslServer saslServer;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     // We can assume this property has been added at the same time the
     // AuthLineConsumer was put in place
@@ -64,6 +67,11 @@ public class AuthLineConsumerTest {
     // TODO verify logging
 
     it = new AuthLineConsumer(fooMechanism, authExtension);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

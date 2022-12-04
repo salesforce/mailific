@@ -33,6 +33,7 @@ import net.mailific.server.LineConsumer;
 import net.mailific.server.commands.CommandHandler;
 import net.mailific.server.session.MockHandler;
 import net.mailific.server.session.SmtpSession;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -46,9 +47,11 @@ public class BaseExtensionTest {
 
   Extension it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     it =
         new BaseExtension() {
@@ -68,6 +71,11 @@ public class BaseExtensionTest {
             return handlers;
           }
         };
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

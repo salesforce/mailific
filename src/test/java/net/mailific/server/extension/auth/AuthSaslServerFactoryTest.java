@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,10 +43,17 @@ public class AuthSaslServerFactoryTest {
 
   AuthSaslServerFactory it = new AuthSaslServerFactory();
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     props.put(Auth.AUTH_CHECK_PROPERTY, authCheck);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

@@ -62,6 +62,7 @@ public interface MailObject {
    *
    * @param parsedCommandLine MAIL FROM line from the client
    * @return Reply indicating whether the reverse-path and parameters in the command are accepted.
+   *     In order to handle pipelining properly, return a Reply with immediate set to false.
    */
   Reply mailFrom(ParsedCommandLine parsedCommandLine);
 
@@ -80,6 +81,7 @@ public interface MailObject {
    *
    * @param parsedCommandLine RCPT TO line from the client
    * @return Reply indicating whether the forward-path and parameters in the command are accepted.
+   *     This Reply should have immediate set to false to support Pipelining.
    */
   Reply rcptTo(ParsedCommandLine parseCommandLine);
 
@@ -99,7 +101,8 @@ public interface MailObject {
    * Do whatever needs to be done with a completed mail object. This method will be called at most
    * once, when all data for the message has been accepted by {@link #writeLine(byte[], int, int)}.
    *
-   * @return A 250 reply if the mail object was processed without error.
+   * @return A 250 reply if the mail object was processed without error. This reply should have
+   *     immediate set to false to support Pipelining. Return a 5xx or 4xx reply if unsuccessful.
    */
   Reply complete();
 
@@ -138,10 +141,14 @@ public interface MailObject {
    */
   Collection<String> getDistinctForwardPathMailboxes(Function<String, String> canonicalizer);
 
-  /** @return All of the accepted recipient's email addresses (may include duplicates). */
+  /**
+   * @return All of the accepted recipients' email addresses (may include duplicates).
+   */
   List<String> getForwardPathMailBoxes();
 
-  /** @return The mailbox (email address) part of the return path. */
+  /**
+   * @return The mailbox (email address) part of the return path.
+   */
   String getReversePathMailbox();
 
   /**

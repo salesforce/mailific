@@ -34,12 +34,15 @@ import net.mailific.server.MailObject;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.session.Reply;
 import net.mailific.server.session.SmtpSession;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class BaseMailObjectTest {
+
+  private AutoCloseable closeable;
 
   String PATH1 = "joe@example.com";
   String PATH2 = "notjoe@example.com";
@@ -56,12 +59,18 @@ public class BaseMailObjectTest {
 
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
+    when(fromLine.getPath()).thenReturn(PATH1);
     when(rcpt1.getPath()).thenReturn(PATH1);
     when(rcpt2.getPath()).thenReturn(PATH2);
 
     it = new BaseMailObjectFactory().newMailObject(session);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -77,7 +86,8 @@ public class BaseMailObjectTest {
   public void mailFrom() {
     Reply actual = it.mailFrom(fromLine);
 
-    assertEquals(Reply._250_OK, actual);
+    assertEquals(250, actual.getCode());
+    assertEquals(false, actual.isImmediate());
     assertEquals(fromLine, it.getMailFromLine());
   }
 
@@ -105,10 +115,10 @@ public class BaseMailObjectTest {
   @Test
   public void addRcptTos() {
     Reply reply = it.rcptTo(rcpt1);
-    assertEquals(Reply._250_OK, reply);
+    assertEquals(250, reply.getCode());
 
     reply = it.rcptTo(rcpt2);
-    assertEquals(Reply._250_OK, reply);
+    assertEquals(250, reply.getCode());
 
     assertThat(it.getAcceptedRcptToLines(), contains(rcpt1, rcpt2));
     assertThat(it.getForwardPathMailBoxes(), contains(PATH1, PATH2));
@@ -142,10 +152,10 @@ public class BaseMailObjectTest {
   @Test
   public void rcptTo_notDistinct() {
     Reply reply = it.rcptTo(rcpt1);
-    assertEquals(Reply._250_OK, reply);
+    assertEquals(250, reply.getCode());
 
     reply = it.rcptTo(rcpt2);
-    assertEquals(Reply._250_OK, reply);
+    assertEquals(250, reply.getCode());
 
     assertThat(it.getAcceptedRcptToLines(), contains(rcpt1, rcpt2));
     assertThat(it.getForwardPathMailBoxes(), contains(PATH1, PATH2));
@@ -164,7 +174,7 @@ public class BaseMailObjectTest {
 
   @Test
   public void complete() throws Exception {
-    assertEquals(Reply._250_OK, it.complete());
+    assertEquals(BaseMailObject.COMPLETE_MAIL_OK, it.complete());
   }
 
   @Test

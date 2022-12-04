@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import net.mailific.server.Line;
 import net.mailific.server.commands.CommandHandler;
 import net.mailific.test.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,13 +41,20 @@ public class SingleCommandLineConsumerTest {
 
   SingleCommandLineConsumer it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     transition = new Transition(new Reply(223, "OK foo"), StandardStates.AFTER_EHLO);
     line = new Line("foo bar");
     handler = TestUtil.mockCommandHandler(session, line, transition);
     it = new SingleCommandLineConsumer(handler);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

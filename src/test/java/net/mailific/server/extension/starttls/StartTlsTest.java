@@ -31,6 +31,7 @@ import java.util.Collection;
 import net.mailific.server.commands.CommandHandler;
 import net.mailific.server.session.SmtpSession;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,9 +43,16 @@ public class StartTlsTest {
 
   StartTls it = new StartTls();
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

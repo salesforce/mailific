@@ -30,6 +30,7 @@ import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,9 +48,11 @@ public class SmtpCommandMapTest {
 
   SmtpCommandMap commandMap;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     commandMap =
         new SmtpCommandMap(
@@ -77,6 +80,11 @@ public class SmtpCommandMapTest {
                   }
                 }),
             null);
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

@@ -42,8 +42,14 @@ public class Reply {
       new Reply(451, "Requested action aborted: local error in processing");
 
   public static final Reply _500_UNRECOGNIZED = new Reply(500, "unrecognized command");
+  public static final Reply _500_UNRECOGNIZED_BUFFERED =
+      new Reply(500, "unrecognized command", false);
+
   public static final Reply _501_BAD_ARGS =
       new Reply(501, "Syntax error in parameters or arguments");
+  public static final Reply _501_BAD_ARGS_BUFFERED =
+      new Reply(501, "Syntax error in parameters or arguments", false);
+
   public static final Reply _503_BAD_SEQUENCE = new Reply(503, "bad sequence of commands");
   public static final Reply _504_BAD_PARAM = new Reply(504, "Command parameter not implemented");
   public static final Reply _554_SERVER_ERROR = new Reply(554, "Server error");
@@ -53,10 +59,16 @@ public class Reply {
 
   private final int code;
   private final String detail;
+  private final boolean immediate;
 
-  public Reply(int code, String detail) {
+  public Reply(int code, String detail, boolean immediate) {
     this.code = code;
     this.detail = detail;
+    this.immediate = immediate;
+  }
+
+  public Reply(int code, String detail) {
+    this(code, detail, true);
   }
 
   public int getCode() {
@@ -67,11 +79,22 @@ public class Reply {
     return detail;
   }
 
+  /**
+   * See RFC 1854 section 2.2 items (4) through (7)
+   *
+   * @return True if this reply should be sent immediately during a pipelined session.
+   */
+  public boolean isImmediate() {
+    return immediate;
+  }
+
   public boolean success() {
     return code >= 200 && code < 300;
   }
 
-  /** @return The reply formatted per the SMTP specification. */
+  /**
+   * @return The reply formatted per the SMTP specification.
+   */
   public String replyString() {
     return String.format("%d %s\r\n", code, detail);
   }

@@ -47,10 +47,10 @@ public class Rcpt extends BaseHandler {
   @Override
   public Transition handleValidCommand(SmtpSession connection, String commandLine) {
     if (!(commandLine.length() > 8)) {
-      return new Transition(Reply._500_UNRECOGNIZED, SessionState.NO_STATE_CHANGE);
+      return new Transition(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE);
     }
     if (!("RCPT TO:".equalsIgnoreCase(commandLine.substring(0, 8)))) {
-      return new Transition(Reply._500_UNRECOGNIZED, SessionState.NO_STATE_CHANGE);
+      return new Transition(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE);
     }
     try {
       Reply reply = connection.getMailObject().rcptTo(parseCommandLine(commandLine));
@@ -60,7 +60,7 @@ public class Rcpt extends BaseHandler {
         return new Transition(reply, SessionState.NO_STATE_CHANGE);
       }
     } catch (ParseException e) {
-      return new Transition(Reply._501_BAD_ARGS, SessionState.NO_STATE_CHANGE);
+      return new Transition(Reply._501_BAD_ARGS_BUFFERED, SessionState.NO_STATE_CHANGE);
     }
   }
 
@@ -74,7 +74,9 @@ public class Rcpt extends BaseHandler {
     return RCPT;
   }
 
-  /** @param line The command line, with no \r\n */
+  /**
+   * @param line The command line, with no \r\n
+   */
   ParsedCommandLine parseCommandLine(String line) throws ParseException {
     final MailboxParser mailboxParser = new MailboxParser(line, 8);
     String mailbox = mailboxParser.getMailbox();

@@ -33,6 +33,7 @@ import io.netty.util.Attribute;
 import java.net.InetSocketAddress;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.SmtpSessionFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,9 +53,11 @@ public class SmtpSessionInitializerTest {
 
   SmtpSessionInitializer it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     InetSocketAddress address = InetSocketAddress.createUnresolved("foo.bar", 2525);
 
     when(channel.pipeline()).thenReturn(pipeline);
@@ -64,6 +67,11 @@ public class SmtpSessionInitializerTest {
     when(sessionFactory.newSmtpSession(address)).thenReturn(session);
 
     it = new SmtpSessionInitializer(sessionFactory, new MockSslContext());
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

@@ -26,11 +26,11 @@ import static org.mockito.Mockito.verify;
 
 import java.util.EnumSet;
 import net.mailific.server.extension.auth.TransitionMatcher;
-import net.mailific.server.session.Reply;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,11 +42,18 @@ public class RsetTest {
 
   Rset it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     it = new Rset();
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -54,7 +61,7 @@ public class RsetTest {
     Transition t = it.handleValidCommand(session, "RSET");
 
     verify(session).clearMailObject();
-    MatcherAssert.assertThat(t, TransitionMatcher.with(Reply._250_OK, StandardStates.AFTER_EHLO));
+    MatcherAssert.assertThat(t, TransitionMatcher.with(Rset.RSET_OK, StandardStates.AFTER_EHLO));
   }
 
   @Test

@@ -35,12 +35,13 @@ import net.mailific.server.session.Transition;
 public class Rset extends BaseHandler {
 
   public static final String RSET = "RSET";
+  public static final Reply RSET_OK = new Reply(250, "Reset OK", false);
 
   @Override
   public Transition handleValidCommand(SmtpSession connection, String commandLine) {
     // TODO: verify no params
     connection.clearMailObject();
-    return new Transition(Reply._250_OK, StandardStates.AFTER_EHLO);
+    return new Transition(RSET_OK, StandardStates.AFTER_EHLO);
   }
 
   @Override

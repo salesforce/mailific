@@ -46,6 +46,7 @@ import net.mailific.server.commands.Rcpt;
 import net.mailific.server.commands.Rset;
 import net.mailific.server.extension.EightBitMime;
 import net.mailific.server.extension.Extension;
+import net.mailific.server.extension.Pipelining;
 import net.mailific.server.extension.SmtpUtf8;
 import net.mailific.server.extension.auth.Auth;
 import net.mailific.server.extension.auth.AuthCheck;
@@ -84,7 +85,9 @@ public class Main {
     }
   }
 
-  /** @return The last server, if any, that was started by calling {@link #main(String[])}. */
+  /**
+   * @return The last server, if any, that was started by calling {@link #main(String[])}.
+   */
   public static SmtpServer getServer() {
     return server;
   }
@@ -180,7 +183,9 @@ public class Main {
         List.of(new PlainMechanism(authCheck), new LoginMechanism(authCheck)), serverName);
   }
 
-  /** @return The hostname, if we can figure it out. Otherwise "localhost". */
+  /**
+   * @return The hostname, if we can figure it out. Otherwise "localhost".
+   */
   public static String defaultListenHost() {
     String listenAddress;
     try {
@@ -246,11 +251,14 @@ public class Main {
     return rv;
   }
 
-  /** @return a list of extensions that "just work" */
+  /**
+   * @return a list of extensions that "just work"
+   */
   public static List<Extension> harmlessExtensions() {
     List<Extension> extensions = new ArrayList<>();
     extensions.add(new EightBitMime());
     extensions.add(new SmtpUtf8());
+    extensions.add(new Pipelining());
     return extensions;
   }
 

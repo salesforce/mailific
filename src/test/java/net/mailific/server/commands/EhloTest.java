@@ -36,6 +36,7 @@ import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
 import net.mailific.server.session.Transition;
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -51,9 +52,11 @@ public class EhloTest {
 
   Ehlo it;
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     when(extension1.getEhloAdvertisment(session)).thenReturn("ext1");
     when(extension1.available(session)).thenReturn(true);
@@ -65,6 +68,11 @@ public class EhloTest {
     when(extension3.available(session)).thenReturn(true);
 
     it = new Ehlo("foo");
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

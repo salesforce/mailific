@@ -29,6 +29,7 @@ import java.util.List;
 import net.mailific.server.Line;
 import net.mailific.server.ServerConfig;
 import net.mailific.server.extension.Extension;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -51,9 +52,11 @@ public class SmtpSessionFactoryImpTest {
 
   final InetSocketAddress remoteAddress = new InetSocketAddress(25);
 
+  private AutoCloseable closeable;
+
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     commandHandler = new MockHandler(line1.getVerb());
     connectHandler = new MockHandler(null);
 
@@ -67,6 +70,11 @@ public class SmtpSessionFactoryImpTest {
             .build();
 
     it = (SmtpSessionFactoryImp) config.getSessionFactory();
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test

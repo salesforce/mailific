@@ -35,11 +35,13 @@ import net.mailific.main.Main;
 import net.mailific.server.commands.Connect;
 import net.mailific.server.extension.EightBitMime;
 import net.mailific.server.extension.Extension;
+import net.mailific.server.extension.Pipelining;
 import net.mailific.server.extension.SmtpUtf8;
 import net.mailific.server.extension.starttls.StartTls;
 import net.mailific.server.reference.BaseMailObjectFactory;
 import net.mailific.server.session.SmtpSessionFactory;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -53,9 +55,11 @@ public class ServerConfigTest {
 
   ServerConfig.Builder builder = ServerConfig.builder();
 
+  private AutoCloseable closeable;
+
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
 
     when(extension.getEhloKeyword()).thenReturn(StartTls.NAME);
 
@@ -64,6 +68,11 @@ public class ServerConfigTest {
         .withCommandHandlers(
             Main.baseCommandHandlers("foo", null, new BaseMailObjectFactory()).values())
         .withConnectHandler(new Connect("foo"));
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   /**
@@ -122,7 +131,6 @@ public class ServerConfigTest {
     assertThat(sessionExtensions, hasItem(instanceOf(StartTls.class)));
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void startTlsNotReplaced() {
     builder.withTlsCert(new File("foo")).withAdditionalExtension(extension);
@@ -137,6 +145,9 @@ public class ServerConfigTest {
     assertThat(
         sessionExtensions,
         IsIterableContainingInAnyOrder.containsInAnyOrder(
-            instanceOf(SmtpUtf8.class), instanceOf(EightBitMime.class), is(extension)));
+            instanceOf(SmtpUtf8.class),
+            instanceOf(EightBitMime.class),
+            instanceOf(Pipelining.class),
+            is(extension)));
   }
 }
