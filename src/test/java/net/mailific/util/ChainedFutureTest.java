@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.mailific.util;
 
 import static org.junit.Assert.assertFalse;
@@ -174,7 +175,6 @@ public class ChainedFutureTest {
           long nanoTime() {
             return times[i++];
           }
-          ;
         };
 
     it.chain(f1).chain(f2);
@@ -196,7 +196,6 @@ public class ChainedFutureTest {
           long nanoTime() {
             return times[i++];
           }
-          ;
         };
 
     it.chain(f1).chain(f2);

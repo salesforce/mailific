@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.mailific.server.commands;
 
 import java.util.ArrayList;
@@ -58,8 +59,8 @@ public class ExtendedReply extends Reply {
   }
 
   public static class Builder {
-    int code;
-    List<String> details = new ArrayList<>();
+    private int code;
+    private List<String> details = new ArrayList<>();
 
     public Builder(int code) {
       this.code = code;

@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.mailific.server.extension.auth;
 
 import java.security.Security;
@@ -93,13 +94,13 @@ public class Auth extends BaseExtension implements IAuth {
   // Used as the selector for adding a line filter
   static final String AUTH_LINE_CONSUMER_SELECTOR = Auth.class.getName() + ".Consumer";
 
-  public static Reply _235_AUTH_SUCCESS = new Reply(235, "Authentication successful");
-  public static Reply _535_AUTH_FAILURE = new Reply(535, "Authentication failed");
+  public static final Reply _235_AUTH_SUCCESS = new Reply(235, "Authentication successful");
+  public static final Reply _535_AUTH_FAILURE = new Reply(535, "Authentication failed");
 
   private final Map<String, Mechanism> mechanisms = new HashMap<>();
   private final String serverName;
 
-  public static Reply _501_CANCELED = new Reply(501, "Authentication canceled");
+  public static final Reply _501_CANCELED = new Reply(501, "Authentication canceled");
 
   /**
    * @param serverName The FQ hostname that should be passed to SaslMechanisms

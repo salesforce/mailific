@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.mailific.server.extension.auth;
 
 import static org.hamcrest.CoreMatchers.anyOf;
@@ -58,8 +59,6 @@ public class AuthTest {
 
   @Mock SaslServer saslServer;
 
-  MockSaslServerFactory saslServerFactory;
-
   Auth it;
 
   private AutoCloseable closeable;
@@ -67,8 +66,6 @@ public class AuthTest {
   @Before
   public void setUp() {
     closeable = MockitoAnnotations.openMocks(this);
-
-    saslServerFactory = new MockSaslServerFactory();
 
     when(fooMechanism.getName()).thenReturn("FOO");
     Mockito.doReturn(MockSaslServerFactory.class).when(fooMechanism).getSaslServerFactoryClass();

@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package net.mailific.server.reference;
 
 import java.io.IOException;
@@ -128,7 +129,6 @@ public class BaseMailObject implements MailObject {
     return new Distinguisher<String>(canonicalizer)
         .distinct(acceptedRcpts.stream().map(p -> p.getPath()));
   }
-  ;
 
   @Override
   public Object putExtensionMaterial(String key, Object material) {
