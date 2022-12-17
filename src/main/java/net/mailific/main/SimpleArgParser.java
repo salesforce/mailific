@@ -1,11 +1,8 @@
-package net.mailific.main;
-
 /*-
- * #%L
  * Mailific SMTP Server Library
- * %%
- * Copyright (C) 2021 - 2022 Joe Humphreys
- * %%
+ *
+ * Copyright (C) 2021-2022 Joe Humphreys
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +14,8 @@ package net.mailific.main;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * #L%
  */
+package net.mailific.main;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,7 +135,9 @@ public class SimpleArgParser {
     this.remainder = remainderInProgress;
   }
 
-  /** @return any positional arguments remaining after the options are consumed. */
+  /**
+   * @return any positional arguments remaining after the options are consumed.
+   */
   public List<String> getRemainder() {
     return Collections.unmodifiableList(remainder);
   }

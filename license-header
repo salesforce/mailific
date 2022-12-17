@@ -1,7 +1,7 @@
 /*-
  * Mailific SMTP Server Library
  *
- * Copyright (C) 2021-2022 Joe Humphreys
+ * Copyright (C) $YEAR Joe Humphreys
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.mailific.server;
-
-import net.mailific.server.session.SmtpSession;
-
-/**
- * Generates new MailObjects.
- *
- * @author jhumphreys
- * @since 1.0.0
- */
-public interface MailObjectFactory {
-
-  /**
-   * @return A new MailObject.
-   */
-  MailObject newMailObject(SmtpSession session);
-}

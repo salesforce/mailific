@@ -1,11 +1,8 @@
-package net.mailific.server.commands;
-
 /*-
- * #%L
  * Mailific SMTP Server Library
- * %%
- * Copyright (C) 2021 - 2022 Joe Humphreys
- * %%
+ *
+ * Copyright (C) 2021-2022 Joe Humphreys
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +14,8 @@ package net.mailific.server.commands;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * #L%
  */
+package net.mailific.server.commands;
 
 import java.util.Objects;
 import net.mailific.server.session.Reply;
@@ -39,7 +36,9 @@ public class Helo extends BaseHandler {
 
   private String domain;
 
-  /** @param domain Domain by which the server identifies itself in the HELO reply */
+  /**
+   * @param domain Domain by which the server identifies itself in the HELO reply
+   */
   public Helo(String domain) {
     Objects.requireNonNull(domain, "Domain is required.");
     this.domain = domain;

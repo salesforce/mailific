@@ -1,11 +1,8 @@
-package net.mailific.server.commands;
-
 /*-
- * #%L
  * Mailific SMTP Server Library
- * %%
- * Copyright (C) 2021 - 2022 Joe Humphreys
- * %%
+ *
+ * Copyright (C) 2021-2022 Joe Humphreys
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +14,8 @@ package net.mailific.server.commands;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * #L%
  */
+package net.mailific.server.commands;
 
 import net.mailific.server.Parameters;
 
@@ -48,22 +45,30 @@ public class ParsedCommandLine {
     this.params = params;
   }
 
-  /** @return The command verb parsed out of the line */
+  /**
+   * @return The command verb parsed out of the line
+   */
   public String getCommand() {
     return command;
   }
 
-  /** @return The complete command line, without the CRLF */
+  /**
+   * @return The complete command line, without the CRLF
+   */
   public String getLine() {
     return line;
   }
 
-  /** @return The parameters, if any, parsed out of the line. May return null. */
+  /**
+   * @return The parameters, if any, parsed out of the line. May return null.
+   */
   public Parameters getParameters() {
     return params;
   }
 
-  /** @return The path, if any, parsed out of the line. May return null. */
+  /**
+   * @return The path, if any, parsed out of the line. May return null.
+   */
   public String getPath() {
     return path;
   }

@@ -1,11 +1,8 @@
-package net.mailific.server;
-
 /*-
- * #%L
  * Mailific SMTP Server Library
- * %%
- * Copyright (C) 2021 - 2022 Joe Humphreys
- * %%
+ *
+ * Copyright (C) 2021-2022 Joe Humphreys
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +14,8 @@ package net.mailific.server;
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * #L%
  */
+package net.mailific.server;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -42,12 +39,16 @@ public class Line {
   private String stripped;
   private String verb;
 
-  /** @param line Must end in CRLF */
+  /**
+   * @param line Must end in CRLF
+   */
   public Line(byte[] line) {
     this.originalLine = line;
   }
 
-  /** @param s String representation of a line. CRLF ending optional. */
+  /**
+   * @param s String representation of a line. CRLF ending optional.
+   */
   public Line(String s) {
     if (!s.endsWith("\r\n")) {
       s = s + "\r\n";
@@ -55,17 +56,23 @@ public class Line {
     this.originalLine = s.getBytes(StandardCharsets.UTF_8);
   }
 
-  /** @return the current version of the line */
+  /**
+   * @return the current version of the line
+   */
   public byte[] getLine() {
     return line == null ? originalLine : line;
   }
 
-  /** @return the original version of the line */
+  /**
+   * @return the original version of the line
+   */
   public byte[] getOriginalLine() {
     return originalLine;
   }
 
-  /** @param line update the line */
+  /**
+   * @param line update the line
+   */
   public void setLine(byte[] line) {
     Objects.requireNonNull(line);
     this.line = line;
@@ -73,7 +80,9 @@ public class Line {
     verb = null;
   }
 
-  /** @return a String version of the line, with the trailing CRLF removed. */
+  /**
+   * @return a String version of the line, with the trailing CRLF removed.
+   */
   public String getStripped() {
     if (stripped == null) {
       stripped = new String(getLine(), 0, getLine().length - 2, StandardCharsets.UTF_8);
@@ -81,7 +90,9 @@ public class Line {
     return stripped;
   }
 
-  /** @return The first word of the line */
+  /**
+   * @return The first word of the line
+   */
   public String getVerb() {
     if (verb == null) {
       verb = getStripped().split(" ", 2)[0];

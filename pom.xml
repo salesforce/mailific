@@ -11,15 +11,7 @@
     <maven.compiler.target>11</maven.compiler.target>
 
     <!-- Dependency Versions -->
-
-    <!-- https://mvnrepository.com/artifact/com.coveo/fmt-maven-plugin -->
-    <coveo-fmt-maven-plugin.version>2.13</coveo-fmt-maven-plugin.version>
-
-    <!-- https://maven.apache.org/plugins/maven-checkstyle-plugin/history.html -->
-    <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
-
-    <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
-    <maven-git-code-format.version>3.5</maven-git-code-format.version>
+    <spotless.version>2.28.0</spotless.version>
 
     <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
     <jacoco.version>0.8.8</jacoco.version>
@@ -35,7 +27,6 @@
 
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
     <mockito-version>4.9.0</mockito-version>
-
 
     <!--  -->
     <kr.motd.maven.version>1.7.1</kr.motd.maven.version>
@@ -73,60 +64,33 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${maven-checkstyle-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>validate</phase>
-            <configuration>
-              <configLocation>checkstyle.xml</configLocation>
-              <consoleOutput>true</consoleOutput>
-              <failsOnError>true</failsOnError>
-              <sourceDirectories>
-                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
-              </sourceDirectories>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- =================================== -->
-      <!-- Create google code formatter git hook -->
-      <!-- =================================== -->
-      <plugin>
-        <groupId>com.cosium.code</groupId>
-        <artifactId>git-code-format-maven-plugin</artifactId>
-        <version>${maven-git-code-format.version}</version>
-        <executions>
-          <execution>
-            <id>formatter-git-hook</id> <!-- plugin execution identifier -->
-            <goals>
-              <goal>install-hooks</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
 
-      <!-- ====================================================== -->
-      <!-- Code formatter                                         -->
-      <!-- ====================================================== -->
       <plugin>
-        <groupId>com.coveo</groupId>
-        <artifactId>fmt-maven-plugin</artifactId>
-        <version>${coveo-fmt-maven-plugin.version}</version>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <googleJavaFormat>
+              <version>1.15.0</version>
+              <style>GOOGLE</style>
+              <reflowLongStrings>true</reflowLongStrings>
+            </googleJavaFormat>
+            <licenseHeader>
+              <file>${project.basedir}/license-header</file>
+            </licenseHeader>
+          </java>
+       </configuration>
         <executions>
           <execution>
+            <id>spotless-apply</id>
+            <phase>validate</phase>
             <goals>
-              <goal>format</goal>
+              <goal>apply</goal>
             </goals>
           </execution>
         </executions>
+
       </plugin>
 
       <plugin>
@@ -168,33 +132,6 @@
             <goals>
               <goal>single</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- license maven plugin to add license files -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>2.0.0</version>
-        <configuration>
-          <organizationName>Joe Humphreys</organizationName>
-          <inceptionYear>2021</inceptionYear>
-          <licenseName>apache_v2</licenseName>
-        </configuration>
-        <executions>
-          <execution>
-            <id>first</id>
-            <goals>
-              <goal>update-file-header</goal>
-            </goals>
-            <phase>process-sources</phase>
-            <configuration>
-              <roots>
-                <root>src/main/java</root>
-                <root>src/test/java</root>
-              </roots>
-            </configuration>
           </execution>
         </executions>
       </plugin>
