@@ -53,7 +53,7 @@ public class SimpleArgParser {
    * <p>After construction, call parseArgs(String[]), and then getFlac, getString, and getInt to
    * access the options given. getRemainder() returns the non-option arguments.
    *
-   * @param argdefs a template for your arguments.
+   * @param argDefString a template for your arguments.
    */
   public SimpleArgParser(String argDefString) {
     Objects.requireNonNull(argDefString, "Argument definition string must not be null.");

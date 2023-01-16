@@ -69,7 +69,6 @@ public class NettySmtpServer implements SmtpServer {
         .channel(NioServerSocketChannel.class)
         .handler(new LoggingHandler(LogLevel.INFO))
         .childHandler(new SmtpSessionInitializer(config.getSessionFactory(), sslContext));
-
     startFuture =
         b.bind(config.getListenHost(), config.getListenPort()).sync().channel().closeFuture();
     return startFuture;

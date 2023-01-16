@@ -81,7 +81,7 @@ public interface MailObject {
    * @return Reply indicating whether the forward-path and parameters in the command are accepted.
    *     This Reply should have immediate set to false to support Pipelining.
    */
-  Reply rcptTo(ParsedCommandLine parseCommandLine);
+  Reply rcptTo(ParsedCommandLine parsedCommandLine);
 
   /**
    * @return all the RCPT TO lines that were sent for this mail object and resulted in a 250 reply.

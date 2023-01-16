@@ -68,7 +68,7 @@ import net.mailific.server.session.Transition;
  *   <li>Include the Auth extension in the {@link net.mailific.server.ServerConfig}.
  * </ol>
  *
- * There's an example of all this in {@link net.mailific.main.Main} (see the code for the
+ * <p>There's an example of all this in {@link net.mailific.main.Main} (see the code for the
  * getTestAuthExtension method).
  *
  * @author jhumphreys

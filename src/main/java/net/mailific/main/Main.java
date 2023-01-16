@@ -157,7 +157,7 @@ public class Main {
    * @return a guess at the server's domain, based on its hostname. If the hostname has more than
    *     one dot, strip off the leftmost label. Otherwise just return the hostname given.
    */
-  static String domainFromHost(String host) {
+  public static String domainFromHost(String host) {
     if (host == null) {
       return null;
     }

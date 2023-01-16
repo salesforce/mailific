@@ -32,8 +32,7 @@ public interface SmtpServer {
   /**
    * Begin listening for incoming SMTP connections.
    *
-   * @return Future<Void>
-   * @throws InterruptedException
+   * @return Future&lt;Void&gt;
    */
   public abstract Future<Void> start() throws InterruptedException, SSLException;
 

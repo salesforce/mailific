@@ -259,7 +259,6 @@ public class MainTest {
     assertEquals(InetAddress.getLocalHost().getCanonicalHostName(), Main.defaultListenHost());
   }
 
-  @SuppressWarnings({"removal"})
   @Test
   public void defaultListenHost_error() throws Exception {
     SecurityManager mgr = System.getSecurityManager();
