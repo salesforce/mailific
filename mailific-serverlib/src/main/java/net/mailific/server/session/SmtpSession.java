@@ -78,8 +78,8 @@ public interface SmtpSession {
    * <p>If a consumer returns any other Transition, then its reply is returned to the client and no
    * further processing of the line takes place.
    *
-   * @param key An identifier that can be passed to {@link #removeLineFilter(Object)} to remove this
-   *     filter.
+   * @param key An identifier that can be passed to {@link #removeLineConsumer(String)} to remove
+   *     this filter.
    */
   void addLineConsumer(String key, LineConsumer consumer);
 

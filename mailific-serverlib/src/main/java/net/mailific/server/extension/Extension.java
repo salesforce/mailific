@@ -24,9 +24,9 @@ import net.mailific.server.session.SmtpSession;
 /**
  * Interface for an SMTP Extension as described in rfc 1425.
  *
- * <p>Extensions do their work by (a) advertising their presence and (b) supplying new or overridden
- * {@link CommandHandler}s. (In the future, it might be nice to have an easy way for them to just
- * add parameter-processors to existing commands.)
+ * <p>Extensions do their work by (a) advertising their presence and (b) supplying a new {@link
+ * LineConsumer} that is placed at the head of the list, giving the extension a chance to act on or
+ * modify the line.
  *
  * <p>Note that a single instance of the Extension is used to serve all requests, so it should be
  * stateless, immutable, and thread-safe. The same is true for any CommandHandler it supplies. If

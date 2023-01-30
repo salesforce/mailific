@@ -83,7 +83,7 @@ public abstract class BaseHandler implements CommandHandler {
 
   /**
    * Check whether the command can be called, given that the session is at the specified
-   * ConnectionState.
+   * SessionState.
    *
    * <p>Extension point: most subclasses should override this to specify which states the command is
    * allowed in. Note that if you override {@link #validForSession(SmtpSession)}, then you must
@@ -93,7 +93,7 @@ public abstract class BaseHandler implements CommandHandler {
    * to send the client a different error reply, return true here and return the desired reply from
    * {@link #handleValidCommand(SmtpSession, String) }.
    *
-   * @param session The ongoing SMTP session.
+   * @param state State of the ongoing SMTP session.
    * @return true if the command can run at this point of the session. False otherwise.
    */
   protected boolean validForState(SessionState state) {

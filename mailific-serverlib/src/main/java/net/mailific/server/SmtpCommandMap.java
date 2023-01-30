@@ -67,7 +67,7 @@ public class SmtpCommandMap implements LineConsumer {
    * verb.
    *
    * @param line is assumed to end in CRLF -- no checking is done here.
-   * @return The result of {@link CommandHandler#handleCommand(SmtpSession, String)}, if this
+   * @return The result of {@link CommandHandler#handleCommand(SmtpSession, Line)}, if this
    *     SmtpCommandMap has a CommandHandler for this type of command. Otherwise, {@link
    *     Transition#UNHANDLED}.
    * @throws NullPointerException or IndexOutOfBoundsException if line is null or less than 2 chars.
@@ -83,7 +83,7 @@ public class SmtpCommandMap implements LineConsumer {
   }
 
   /**
-   * @return The result of {@link CommandHandler#handleCommand(SmtpSession, String)}, if this
+   * @return The result of {@link CommandHandler#handleCommand(SmtpSession, Line)}, if this
    *     SmtpCommandMap was constructed with a connectHandler, otherwise {@link
    *     Transition#UNHANDLED}.
    */

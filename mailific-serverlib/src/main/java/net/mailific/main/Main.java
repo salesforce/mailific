@@ -134,7 +134,6 @@ public class Main {
    *       <li>listenHost: the value returned by {@link #defaultListenHost()}
    *       <li>listenPort: 2525
    *       <li>tlsCert/tlsCertKey/tlsCertPass: all null
-   *       <li>logger: a new {@link JavaUtilLogger}
    *       <li>extensions: the value returned by {@link #harmlessExtensions()}
    *       <li>commandHandlers: the values from the Map returned by {@link
    *           #baseCommandHandlers(String, String, MailObjectFactory)}

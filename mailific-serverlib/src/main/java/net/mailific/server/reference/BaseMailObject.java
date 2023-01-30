@@ -35,8 +35,8 @@ import net.mailific.util.Distinguisher;
 
 /**
  * Simple implementation of MailObject. This implementation just discards the message data.
- * Implementers will likely want to override {@link #getOutputStream()} so that it stores the
- * message somewhere.
+ * Implementers will likely want to override {@link #writeLine(byte[], int, int)} so that it stores
+ * the message somewhere.
  *
  * @author jhumphreys
  * @since 1.0.0
