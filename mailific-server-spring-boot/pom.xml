@@ -10,6 +10,7 @@
   <name>Mailific Server Spring Boot Configuration</name>
   <description>Spring Auto Configuration for Mailific SMTP Server</description>
   <url>https://mailific.net</url>
+  <inceptionYear>2021</inceptionYear>
 
   <scm>
     <connection>scm:git:git://github.com:salesforce/mailific.git</connection>

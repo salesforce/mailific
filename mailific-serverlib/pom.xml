@@ -4,10 +4,11 @@
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
   <version>1.0.1</version>
-  
+
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>
   <url>https://mailific.net</url>
+  <inceptionYear>2021</inceptionYear>
 
   <scm>
     <connection>scm:git:git://github.com:salesforce/mailific.git</connection>
