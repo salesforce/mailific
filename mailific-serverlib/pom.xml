@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.mailific</groupId>
@@ -15,6 +17,14 @@
     <developerConnection>scm:git:ssh://github.com:salesforce/mailific.git</developerConnection>
     <url>https://github.com/salesforce/mailific/tree/main</url>
   </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <name>Central Repository OSSRH</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </distributionManagement>
 
   <licenses>
     <license>
@@ -65,6 +75,32 @@
       <id>release</id>
       <build>
         <plugins>
+          <plugin>
+            <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -154,33 +190,6 @@
           </execution>
         </executions>
 
-      </plugin>
-
-      <plugin>
-        <groupId>org.jreleaser</groupId>
-        <artifactId>jreleaser-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <configuration>
-          <jreleaser>
-            <signing>
-              <active>ALWAYS</active>
-              <armored>true</armored>
-            </signing>
-            <deploy>
-              <maven>
-                <nexus2>
-                  <maven-central>
-                    <active>ALWAYS</active>
-                    <url>https://s01.oss.sonatype.org/service/local</url>;
-                    <closeRepository>false</closeRepository>
-                    <releaseRepository>false</releaseRepository>
-                    <stagingRepositories>target/staging-deploy</stagingRepositories>
-                  </maven-central>
-                </nexus2>
-              </maven>
-            </deploy>
-          </jreleaser>
-        </configuration>
       </plugin>
 
       <plugin>

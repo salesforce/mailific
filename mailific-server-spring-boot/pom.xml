@@ -18,6 +18,14 @@
     <url>https://github.com/salesforce/mailific/tree/main</url>
   </scm>
 
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <name>Central Repository OSSRH</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </distributionManagement>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -50,6 +58,36 @@
       <id>release</id>
       <build>
         <plugins>
+          <plugin>
+            <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                  <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -143,35 +181,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.jreleaser</groupId>
-        <artifactId>jreleaser-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <configuration>
-          <jreleaser>
-            <signing>
-              <active>ALWAYS</active>
-              <armored>true</armored>
-            </signing>
-            <deploy>
-              <maven>
-                <nexus2>
-                  <maven-central>
-                    <active>ALWAYS</active>
-                    <url>https://s01.oss.sonatype.org/service/local</url>;
-                    <closeRepository>false</closeRepository>
-                    <releaseRepository>false</releaseRepository>
-                    <stagingRepositories>target/staging-deploy</stagingRepositories>
-                  </maven-central>
-                </nexus2>
-              </maven>
-            </deploy>
-          </jreleaser>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
-
 </project>
