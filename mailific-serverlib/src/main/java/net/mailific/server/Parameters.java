@@ -46,6 +46,9 @@ public class Parameters {
    * @param offset The offset into line where the parameters start.
    */
   public Parameters(String line, int offset) {
+    if (offset >= line.length()) {
+      return;
+    }
     // TODO optimize and validate
     Matcher m = splitter.matcher(line);
     if (m.find(offset)) {

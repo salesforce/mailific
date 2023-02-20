@@ -76,4 +76,10 @@ public class ParametersTest {
     assertFalse(it.exists("BAR"));
     assertNull(it.get("BAR"));
   }
+
+  @Test
+  public void test_offsetOutOfBounds() {
+    Parameters it = new Parameters("foo", 5);
+    assertEquals(0, it.getParameterNames().size());
+  }
 }

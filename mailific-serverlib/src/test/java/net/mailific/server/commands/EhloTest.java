@@ -37,6 +37,7 @@ import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -75,9 +76,14 @@ public class EhloTest {
 
   @Test
   public void happyPath() {
+    ArgumentCaptor<ParsedCommandLine> pclArgument =
+        ArgumentCaptor.forClass(ParsedCommandLine.class);
+
     Transition t = it.handleValidCommand(session, "EHLO example.com");
 
     verify(session).clearMailObject();
+    verify(session).setEhloCommandLine(pclArgument.capture());
+    assertEquals("example.com", pclArgument.getValue().getPath());
     MatcherAssert.assertThat(t, TransitionMatcher.with(250, is("foo"), StandardStates.AFTER_EHLO));
   }
 
@@ -120,5 +126,26 @@ public class EhloTest {
     Transition t = it.handleValidCommand(session, "EHLO example.com");
 
     assertEquals("250 domain greeting\r\n", t.getReply().replyString());
+  }
+
+  @Test
+  public void withParams() {
+    it = new Ehlo("domain", "greeting");
+    ArgumentCaptor<ParsedCommandLine> pclArgument =
+        ArgumentCaptor.forClass(ParsedCommandLine.class);
+
+    it.handleValidCommand(session, "EHLO example.com foo=bar");
+
+    verify(session).setEhloCommandLine(pclArgument.capture());
+    assertEquals("bar", pclArgument.getValue().getParameters().get("foo"));
+  }
+
+  @Test
+  public void noDomainGiven() {
+    it = new Ehlo("domain", "greeting");
+
+    Transition t = it.handleValidCommand(session, "EHLO");
+
+    assertEquals("501 Syntax error in parameters or arguments\r\n", t.getReply().replyString());
   }
 }

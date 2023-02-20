@@ -18,10 +18,15 @@
 
 package net.mailific.server.commands;
 
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import net.mailific.server.Parameters;
 import net.mailific.server.extension.Extension;
+import net.mailific.server.session.Reply;
 import net.mailific.server.session.SessionState;
 import net.mailific.server.session.SmtpSession;
 import net.mailific.server.session.StandardStates;
@@ -74,7 +79,32 @@ public class Ehlo extends BaseHandler {
     for (Extension extension : extensionsToPresent(session)) {
       replyBuilder.withDetail(extension.getEhloAdvertisment(session));
     }
+    try {
+      session.setEhloCommandLine(parseCommandLine(commandLine));
+    } catch (ParseException e) {
+      return new Transition(Reply._501_BAD_ARGS, SessionState.NO_STATE_CHANGE);
+    }
     return new Transition(replyBuilder.build(), StandardStates.AFTER_EHLO);
+  }
+
+  Pattern domainFinder = Pattern.compile("\\S+");
+
+  /**
+   * Extension point.
+   *
+   * <p>This is a very lenient parsing that doesn't enforce the BNF for the domain part, and also
+   * allows extra parameters. Subclasses can override if they want to be strict, or if they want to
+   * be more lenient and not require a domain.
+   */
+  ParsedCommandLine parseCommandLine(String commandLine) throws ParseException {
+    Matcher matcher = domainFinder.matcher(commandLine);
+    boolean matched = matcher.find(4);
+    if (!matched) {
+      throw new ParseException("No domain in EHLO command", 5);
+    }
+    String path = matcher.group();
+    Parameters params = new Parameters(commandLine, matcher.end());
+    return new ParsedCommandLine(commandLine, verb(), path, params);
   }
 
   /**

@@ -3,7 +3,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-parent</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>Mailific Parent</name>
   <description>Parent Project for Mailific SMTP Server Library</description>
   <url>https://mailific.net</url>

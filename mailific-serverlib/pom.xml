@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>

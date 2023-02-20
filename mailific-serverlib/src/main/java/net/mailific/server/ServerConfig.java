@@ -19,8 +19,6 @@
 package net.mailific.server;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.NotSerializableException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,11 +105,6 @@ public class ServerConfig {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  /* Make checkmarx happy -- make sure this isn't serializable since it can hold a password. */
-  private final void writeObject(java.io.ObjectOutputStream out) throws IOException {
-    throw new NotSerializableException();
   }
 
   /** Builder to build {@link ServerConfig}. */

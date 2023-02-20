@@ -68,7 +68,8 @@ public class ParsedCommandLine {
   }
 
   /**
-   * @return The path, if any, parsed out of the line. May return null.
+   * @return The path, if any, parsed out of the line. For the Ehlo command, will contain the
+   *     domain. May return null.
    */
   public String getPath() {
     return path;

@@ -24,9 +24,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import net.mailific.main.Main;
@@ -147,5 +151,17 @@ public class ServerConfigTest {
             instanceOf(EightBitMime.class),
             instanceOf(Pipelining.class),
             is(extension)));
+  }
+
+  // Checkmarx wants to be sure ServerConfig isn't serializable since it can hold a password. I
+  // don't want to follow Checkmarx's
+  // suggestion of adding a writeObject method that throws, because it's untestable. So my
+  // compromise is to add a test to verify
+  // ServerConfig doesn't serialize.
+  @Test
+  public void writeObject() {
+    assertThrows(
+        NotSerializableException.class,
+        () -> new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(builder.build()));
   }
 }
