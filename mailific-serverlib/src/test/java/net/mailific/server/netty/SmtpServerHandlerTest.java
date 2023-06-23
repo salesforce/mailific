@@ -40,6 +40,7 @@ import io.netty.util.Attribute;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import java.net.InetSocketAddress;
+import javax.net.ssl.SSLSession;
 import net.mailific.server.extension.starttls.StartTls;
 import net.mailific.server.netty.SmtpServerHandler.TlsStartListener;
 import net.mailific.server.session.Reply;
@@ -69,7 +70,11 @@ public class SmtpServerHandlerTest {
 
   @Mock Future<Channel> sslHandlerFuture;
 
+  @Mock SSLSession sslSession;
+
   MockSslContext sslContext;
+
+  MockSslHandler sslHandler;
 
   InetSocketAddress remoteHost = new InetSocketAddress("remote.host", 1234);
 
@@ -94,6 +99,7 @@ public class SmtpServerHandlerTest {
     when(session.connect()).thenReturn(new Reply(220, "example.com"));
 
     sslContext = new MockSslContext();
+    sslHandler = new MockSslHandler(new MockSSLEngine(sslSession));
 
     it = new SmtpServerHandler(sslContext);
   }
@@ -262,7 +268,7 @@ public class SmtpServerHandlerTest {
 
     verify(pipeline).addFirst(any(SslHandler.class));
 
-    MockSslContext.MockSslHandler sslHandler = sslContext.getSslHandler();
+    MockSslHandler sslHandler = sslContext.getSslHandler();
     verify(sslHandler.handshakeFuture).addListener(any(SmtpServerHandler.TlsStartListener.class));
 
     verify(ctx).write(StartTls._220_READY.replyString());
@@ -273,17 +279,17 @@ public class SmtpServerHandlerTest {
   @Test
   public void tlsStartListener_success() throws Exception {
     when(sslHandlerFuture.isSuccess()).thenReturn(true);
-    TlsStartListener it = new TlsStartListener(session);
+    TlsStartListener it = new TlsStartListener(session, sslHandler);
     it.operationComplete(sslHandlerFuture);
-    verify(session).setTlsStarted(true);
+    verify(session).setSslSession(sslSession);
   }
 
   @Test
   public void tlsStartListener_fail() throws Exception {
     when(sslHandlerFuture.isSuccess()).thenReturn(false);
-    TlsStartListener it = new TlsStartListener(session);
+    TlsStartListener it = new TlsStartListener(session, sslHandler);
     it.operationComplete(sslHandlerFuture);
-    verify(session, never()).setTlsStarted(true);
+    verify(session, never()).setSslSession(sslSession);
   }
 
   @Test

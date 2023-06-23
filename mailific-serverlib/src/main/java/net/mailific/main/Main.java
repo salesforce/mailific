@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import javax.security.sasl.AuthorizeCallback;
@@ -181,16 +182,23 @@ public class Main {
   }
 
   /**
-   * @return The hostname, if we can figure it out. Otherwise "localhost".
+   * @return The hostname, if we can get it from {@link InetAddress#getLocalHost()}. Otherwise
+   *     "localhost".
    */
   public static String defaultListenHost() {
-    String listenAddress;
+    return defaultListenHost(() -> InetAddress.getLocalHost().getCanonicalHostName());
+  }
+
+  /**
+   * @return The hostname, if we can figure it out. Otherwise "localhost".
+   */
+  public static String defaultListenHost(Callable<String> hostnameFunc) {
+    String listenAddress = null;
     try {
-      listenAddress = InetAddress.getLocalHost().getCanonicalHostName();
+      listenAddress = hostnameFunc.call();
     } catch (Exception e) {
-      listenAddress = "localhost";
     }
-    return listenAddress;
+    return listenAddress == null ? "localhost" : listenAddress;
   }
 
   /**

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.function.Function;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 
 /**
  * Represents a Mail Object as defined in RFC 5321 section 2.3.1.
@@ -99,10 +100,12 @@ public interface MailObject {
    * Do whatever needs to be done with a completed mail object. This method will be called at most
    * once, when all data for the message has been accepted by {@link #writeLine(byte[], int, int)}.
    *
+   * @param session The current SmtpSession, passed in case some data is needed from it for
+   *     processing or logging.
    * @return A 250 reply if the mail object was processed without error. This reply should have
    *     immediate set to false to support Pipelining. Return a 5xx or 4xx reply if unsuccessful.
    */
-  Reply complete();
+  Reply complete(SmtpSession session);
 
   /**
    * Clean up any resources that were allocated to handle the mail object. The framework will try to
@@ -152,6 +155,8 @@ public interface MailObject {
   /**
    * Called when the DATA command has been received. Implementations should acquire any resources
    * they need to process the message data.
+   *
+   * @param session The current SmtpSession.
    */
-  void prepareForData();
+  void prepareForData(SmtpSession session);
 }

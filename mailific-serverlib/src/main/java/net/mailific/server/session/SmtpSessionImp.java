@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.net.ssl.SSLSession;
 import net.mailific.server.Line;
 import net.mailific.server.LineConsumer;
 import net.mailific.server.MailObject;
@@ -50,7 +51,7 @@ public class SmtpSessionImp implements SmtpSession {
   private ParsedCommandLine ehlo;
   private MailObject currentMailObject;
   private Collection<Extension> supportedExtensions;
-  private boolean isTlsStarted;
+  private SSLSession tlsSession;
   private final Map<String, Object> properties = new HashMap<>();
   private LineConsumerChain consumerChain = new LineConsumerChain();
 
@@ -110,7 +111,7 @@ public class SmtpSessionImp implements SmtpSession {
       return Reply._554_SERVER_ERROR;
     }
     try {
-      return currentMailObject.complete();
+      return currentMailObject.complete(this);
     } finally {
       clearMailObject();
     }
@@ -137,12 +138,17 @@ public class SmtpSessionImp implements SmtpSession {
 
   @Override
   public boolean isTlsStarted() {
-    return isTlsStarted;
+    return tlsSession != null;
   }
 
   @Override
-  public void setTlsStarted(boolean isTlsStarted) {
-    this.isTlsStarted = isTlsStarted;
+  public void setSslSession(SSLSession tlsSession) {
+    this.tlsSession = tlsSession;
+  }
+
+  @Override
+  public SSLSession getSslSession() {
+    return this.tlsSession;
   }
 
   @Override

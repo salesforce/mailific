@@ -26,8 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import net.mailific.server.MailObject;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class InMemoryMailObjectTest {
 
@@ -35,8 +39,13 @@ public class InMemoryMailObjectTest {
   byte[] data;
   Reply aReply = new Reply(250, "Yep.");
 
+  private AutoCloseable closeable;
+  @Mock SmtpSession session;
+
   @Before
   public void setUp() throws Exception {
+    closeable = MockitoAnnotations.openMocks(this);
+
     it =
         new InMemoryMailObject(256) {
 
@@ -48,17 +57,22 @@ public class InMemoryMailObjectTest {
         };
   }
 
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
+  }
+
   @Test
   public void happyPath() throws IOException {
     byte[] line1 = "Subject: hi\r\n".getBytes(StandardCharsets.UTF_8);
     byte[] line2 = "\r\n".getBytes(StandardCharsets.UTF_8);
     byte[] line3 = "junk Hi.\r\n more junk".getBytes(StandardCharsets.UTF_8);
 
-    it.prepareForData();
+    it.prepareForData(session);
     it.writeLine(line1, 0, line1.length);
     it.writeLine(line2, 0, line2.length);
     it.writeLine(line3, 5, 5);
-    Reply actual = it.complete();
+    Reply actual = it.complete(session);
 
     assertArrayEquals("Subject: hi\r\n\r\nHi.\r\n".getBytes(StandardCharsets.UTF_8), data);
     assertEquals(actual, aReply);

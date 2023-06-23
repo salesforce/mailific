@@ -30,8 +30,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.security.Permission;
 import java.util.List;
 import java.util.Map;
 import javax.security.sasl.AuthorizeCallback;
@@ -260,33 +260,23 @@ public class MainTest {
   }
 
   @Test
-  public void defaultListenHost_error() throws Exception {
-    SecurityManager mgr = System.getSecurityManager();
-    System.setSecurityManager(
-        new SecurityManager() {
+  public void defaultListenHost_withCallable() throws Exception {
+    assertEquals("foo", Main.defaultListenHost(() -> "foo"));
+  }
 
-          // Cause an exception getting the localhost name
-          @Override
-          public void checkConnect(String host, int port) {
-            throw new RuntimeException("No connecting allowed.");
-          }
+  @Test
+  public void defaultListenHost_withCallable_Null() throws Exception {
+    assertEquals("localhost", Main.defaultListenHost(() -> null));
+  }
 
-          @Override
-          public void checkPermission(Permission perm) {
-            // The default implementation will prevent us from setting
-            // the security manager back to mgr. But we know mgr allows
-            // it, or we wouldn't be here. Also, jacoco has issues with
-            // the default implementation.
-            if (mgr != null) {
-              mgr.checkPermission(perm);
-            }
-          }
-        });
-    try {
-      assertEquals("localhost", Main.defaultListenHost());
-    } finally {
-      System.setSecurityManager(mgr);
-    }
+  @Test
+  public void defaultListenHost_Exception() throws Exception {
+    assertEquals(
+        "localhost",
+        Main.defaultListenHost(
+            () -> {
+              throw new UnknownHostException();
+            }));
   }
 
   @Test

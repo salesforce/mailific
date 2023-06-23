@@ -172,7 +172,7 @@ public class BaseMailObjectTest {
 
   @Test
   public void complete() throws Exception {
-    assertEquals(BaseMailObject.COMPLETE_MAIL_OK, it.complete());
+    assertEquals(BaseMailObject.COMPLETE_MAIL_OK, it.complete(session));
   }
 
   @Test
@@ -192,6 +192,6 @@ public class BaseMailObjectTest {
   @Test
   public void doNothingMethods() throws Exception {
     it.dispose();
-    it.prepareForData();
+    it.prepareForData(session);
   }
 }

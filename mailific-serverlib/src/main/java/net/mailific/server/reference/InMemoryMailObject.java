@@ -21,6 +21,7 @@ package net.mailific.server.reference;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 
 /**
  * A MailObject that caches message data in memory.
@@ -38,7 +39,7 @@ public abstract class InMemoryMailObject extends BaseMailObject {
   }
 
   @Override
-  public Reply complete() {
+  public Reply complete(SmtpSession session) {
     Reply reply = processFinished(data.toByteArray());
     dispose();
     return reply;
@@ -58,7 +59,7 @@ public abstract class InMemoryMailObject extends BaseMailObject {
   }
 
   @Override
-  public void prepareForData() {
+  public void prepareForData(SmtpSession session) {
     this.data = new ByteArrayOutputStream(initialSize);
   }
 

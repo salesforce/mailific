@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import net.mailific.server.MailObject;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 import net.mailific.util.Distinguisher;
 
 /**
@@ -105,7 +106,7 @@ public class BaseMailObject implements MailObject {
   public void writeLine(byte[] line, int offset, int length) throws IOException {}
 
   @Override
-  public Reply complete() {
+  public Reply complete(SmtpSession session) {
     return COMPLETE_MAIL_OK;
   }
 
@@ -141,5 +142,5 @@ public class BaseMailObject implements MailObject {
   }
 
   @Override
-  public void prepareForData() {}
+  public void prepareForData(SmtpSession session) {}
 }
