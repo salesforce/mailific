@@ -74,7 +74,7 @@ public class DataTest {
     Transition t = it.handleValidCommand(session, "DATA");
 
     verify(session).addLineConsumer(eq(Data.DATA_FILTER_KEY), any(DataLineConsumer.class));
-    verify(mailObject).prepareForData();
+    verify(mailObject).prepareForData(session);
     assertThat(t, TransitionMatcher.with(Reply._354_CONTINUE, StandardStates.READING_DATA));
   }
 

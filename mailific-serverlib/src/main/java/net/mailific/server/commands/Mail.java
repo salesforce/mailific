@@ -59,7 +59,7 @@ public class Mail extends BaseHandler {
     }
     MailObject mailObject = mailObjectFactory.newMailObject(session);
     try {
-      Reply reply = mailObject.mailFrom(parseCommandLine(commandLine));
+      Reply reply = mailObject.mailFrom(parseCommandLine(commandLine), session);
       if (reply.getCode() == 250) {
         session.newMailObject(mailObject);
         return new Transition(reply, StandardStates.AFTER_MAIL);

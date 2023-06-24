@@ -51,7 +51,7 @@ public class Data extends BaseHandler {
       return new Transition(Reply._501_BAD_ARGS, SessionState.NO_STATE_CHANGE);
     }
     session.addLineConsumer(DATA_FILTER_KEY, new DataLineConsumer());
-    session.getMailObject().prepareForData();
+    session.getMailObject().prepareForData(session);
     return new Transition(Reply._354_CONTINUE, StandardStates.READING_DATA);
   }
 

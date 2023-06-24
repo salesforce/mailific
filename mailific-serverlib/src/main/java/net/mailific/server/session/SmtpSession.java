@@ -20,6 +20,7 @@ package net.mailific.server.session;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import javax.net.ssl.SSLSession;
 import net.mailific.server.LineConsumer;
 import net.mailific.server.MailObject;
 import net.mailific.server.commands.ParsedCommandLine;
@@ -158,5 +159,21 @@ public interface SmtpSession {
    */
   Object clearProperty(String key);
 
-  void setTlsStarted(boolean b);
+  /**
+   * Note to implementers: SSLSessions are mutable objects that people can probably find a way to do
+   * mischief with. You might consider keeping only an immutable copy that doesn't hand out
+   * references to more internals.
+   *
+   * @param session SSLSession in use, or null if no SSLSession is in use.
+   */
+  void setSslSession(SSLSession session);
+
+  /**
+   * Note to implementers: SSLSessions are mutable objects that people can probably find a way to do
+   * mischief with. You might consider returning an immutable copy that doesn't hand out references
+   * to more internals.
+   *
+   * @return the SSLSession in use for this SmtpSession, or null if TLS has not been established.
+   */
+  SSLSession getSslSession();
 }

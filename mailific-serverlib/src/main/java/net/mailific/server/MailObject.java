@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.function.Function;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 
 /**
  * Represents a Mail Object as defined in RFC 5321 section 2.3.1.
@@ -34,10 +35,10 @@ import net.mailific.server.session.Reply;
  * <p>SmtpSessions must obey this contract with regard to the following list of methods:
  *
  * <ol>
- *   <li>{@link #mailFrom(ParsedCommandLine)}
- *   <li>{@link #rcptTo(ParsedCommandLine)}
+ *   <li>{@link #mailFrom(ParsedCommandLine, SmtpSession)}
+ *   <li>{@link #rcptTo(ParsedCommandLine, SmtpSession)}
  *   <li>{@link #writeLine(byte[], int, int)}
- *   <li>{@link #complete()}
+ *   <li>{@link #complete(SmtpSession)}
  *   <li>{@link #dispose()}
  * </ol>
  *
@@ -59,10 +60,11 @@ public interface MailObject {
    * Accept a MAIL FROM command.
    *
    * @param parsedCommandLine MAIL FROM line from the client
+   * @param session The current SmtpSession.
    * @return Reply indicating whether the reverse-path and parameters in the command are accepted.
    *     In order to handle pipelining properly, return a Reply with immediate set to false.
    */
-  Reply mailFrom(ParsedCommandLine parsedCommandLine);
+  Reply mailFrom(ParsedCommandLine parsedCommandLine, SmtpSession session);
 
   /**
    * Makes the MAIL FROM command available in case it should be needed later in the session (e.g.,
@@ -78,10 +80,11 @@ public interface MailObject {
    * returned, then the recipient will be omitted from calls to {@link #getAcceptedRcptToLines()}.
    *
    * @param parsedCommandLine RCPT TO line from the client
+   * @param session The current SmtpSession.
    * @return Reply indicating whether the forward-path and parameters in the command are accepted.
    *     This Reply should have immediate set to false to support Pipelining.
    */
-  Reply rcptTo(ParsedCommandLine parsedCommandLine);
+  Reply rcptTo(ParsedCommandLine parsedCommandLine, SmtpSession session);
 
   /**
    * @return all the RCPT TO lines that were sent for this mail object and resulted in a 250 reply.
@@ -99,10 +102,12 @@ public interface MailObject {
    * Do whatever needs to be done with a completed mail object. This method will be called at most
    * once, when all data for the message has been accepted by {@link #writeLine(byte[], int, int)}.
    *
+   * @param session The current SmtpSession, passed in case some data is needed from it for
+   *     processing or logging.
    * @return A 250 reply if the mail object was processed without error. This reply should have
    *     immediate set to false to support Pipelining. Return a 5xx or 4xx reply if unsuccessful.
    */
-  Reply complete();
+  Reply complete(SmtpSession session);
 
   /**
    * Clean up any resources that were allocated to handle the mail object. The framework will try to
@@ -152,6 +157,8 @@ public interface MailObject {
   /**
    * Called when the DATA command has been received. Implementations should acquire any resources
    * they need to process the message data.
+   *
+   * @param session The current SmtpSession.
    */
-  void prepareForData();
+  void prepareForData(SmtpSession session);
 }

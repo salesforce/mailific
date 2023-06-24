@@ -96,7 +96,7 @@ public class SmtpServerHandler extends ChannelInboundHandlerAdapter {
       if (reply == StartTls._220_READY) {
         SslHandler sslHandler = sslContext.newHandler(channel.alloc());
         ctx.pipeline().addFirst(sslHandler);
-        sslHandler.handshakeFuture().addListener(new TlsStartListener(session));
+        sslHandler.handshakeFuture().addListener(new TlsStartListener(session, sslHandler));
       }
       if (reply != Reply.DO_NOT_REPLY) {
         ChannelFuture future = ctx.write(reply.replyString());
@@ -163,15 +163,17 @@ public class SmtpServerHandler extends ChannelInboundHandlerAdapter {
 
   static class TlsStartListener implements GenericFutureListener<Future<? super Channel>> {
     private final SmtpSession session;
+    private SslHandler sslHandler;
 
-    TlsStartListener(SmtpSession session) {
+    TlsStartListener(SmtpSession session, SslHandler sslHandler) {
       this.session = session;
+      this.sslHandler = sslHandler;
     }
 
     @Override
     public void operationComplete(Future<? super Channel> future) throws Exception {
       if (future.isSuccess()) {
-        session.setTlsStarted(true);
+        session.setSslSession(sslHandler.engine().getSession());
       }
     }
   }

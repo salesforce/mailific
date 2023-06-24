@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import net.mailific.server.MailObject;
 import net.mailific.server.commands.ParsedCommandLine;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 import net.mailific.util.Distinguisher;
 
 /**
@@ -50,7 +51,7 @@ public class BaseMailObject implements MailObject {
   public static final Reply COMPLETE_MAIL_OK = new Reply(250, "Message accepted.", false);
 
   @Override
-  public Reply mailFrom(ParsedCommandLine mailFrom) {
+  public Reply mailFrom(ParsedCommandLine mailFrom, SmtpSession session) {
     Objects.requireNonNull(mailFrom, "MAIL FROM line may not be null");
     this.mailFrom = mailFrom;
     return new Reply(250, String.format("sender %s OK", mailFrom.getPath()), false);
@@ -71,7 +72,7 @@ public class BaseMailObject implements MailObject {
   }
 
   @Override
-  public final Reply rcptTo(ParsedCommandLine rcpt) {
+  public final Reply rcptTo(ParsedCommandLine rcpt, SmtpSession session) {
     Objects.requireNonNull(rcpt, "RCPT TO line may not be null");
     Reply reply = offerRecipient(rcpt);
     if (reply.getCode() == 250) {
@@ -105,7 +106,7 @@ public class BaseMailObject implements MailObject {
   public void writeLine(byte[] line, int offset, int length) throws IOException {}
 
   @Override
-  public Reply complete() {
+  public Reply complete(SmtpSession session) {
     return COMPLETE_MAIL_OK;
   }
 
@@ -141,5 +142,5 @@ public class BaseMailObject implements MailObject {
   }
 
   @Override
-  public void prepareForData() {}
+  public void prepareForData(SmtpSession session) {}
 }

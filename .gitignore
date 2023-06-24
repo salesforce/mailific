@@ -4,3 +4,5 @@
 .settings
 target/
 /.mvn
+/examples/springboot/.classpath
+/examples/springboot/.project

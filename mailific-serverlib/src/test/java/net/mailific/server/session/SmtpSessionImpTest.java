@@ -35,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import javax.net.ssl.SSLSession;
 import net.mailific.server.Line;
 import net.mailific.server.LineArgMatcher;
 import net.mailific.server.LineConsumer;
@@ -64,6 +65,8 @@ public class SmtpSessionImpTest {
   @Mock Extension extension;
 
   @Mock LineConsumer commandMap;
+
+  @Mock SSLSession sslSession;
 
   SmtpSessionImp it;
 
@@ -141,8 +144,12 @@ public class SmtpSessionImpTest {
     assertEquals(ehloLine, it.getEhloCommandLine());
 
     assertFalse(it.isTlsStarted());
-    it.setTlsStarted(true);
+    it.setSslSession(sslSession);
+    assertEquals(sslSession, it.getSslSession());
     assertTrue(it.isTlsStarted());
+    it.setSslSession(null);
+    assertFalse(it.isTlsStarted());
+    assertNull(it.getSslSession());
   }
 
   @Test

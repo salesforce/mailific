@@ -43,7 +43,7 @@ public class Rcpt extends BaseHandler {
    * delegated to the MailObject.
    */
   @Override
-  public Transition handleValidCommand(SmtpSession connection, String commandLine) {
+  public Transition handleValidCommand(SmtpSession session, String commandLine) {
     if (!(commandLine.length() > 8)) {
       return new Transition(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE);
     }
@@ -51,7 +51,7 @@ public class Rcpt extends BaseHandler {
       return new Transition(Reply._500_UNRECOGNIZED_BUFFERED, SessionState.NO_STATE_CHANGE);
     }
     try {
-      Reply reply = connection.getMailObject().rcptTo(parseCommandLine(commandLine));
+      Reply reply = session.getMailObject().rcptTo(parseCommandLine(commandLine), session);
       if (reply.getCode() == 250) {
         return new Transition(reply, StandardStates.AFTER_RCPT);
       } else {
