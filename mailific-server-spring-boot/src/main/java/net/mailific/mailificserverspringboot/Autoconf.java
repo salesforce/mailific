@@ -20,7 +20,9 @@ package net.mailific.mailificserverspringboot;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import net.mailific.main.Main;
 import net.mailific.server.LineConsumer;
 import net.mailific.server.MailObject;
@@ -152,34 +154,42 @@ public class Autoconf {
    * possible LineConsumer Beans.
    *
    * @param commands see {@link #commandHandlerProvider(BannerDomainProvider, EhloGreetingProvider,
-   *     MailObjectFactory)}
+   *     MailObjectFactory, Collection<CommandHandler>)}
    */
   @Bean()
   @ConditionalOnMissingBean(name = "mailificCommandConsumer")
-  public SmtpCommandMap mailificCommandConsumer(CommandHandlerProvider commands) {
+  public LineConsumer mailificCommandConsumer(CommandHandlerProvider commands) {
     return new SmtpCommandMap(commands.commandHandlers(), commands.connectHandler());
   }
 
   /**
    * Provides a connect handler and collection of command handlers. Used by {@link
-   * #mailificCommandConsumer(CommandHandlerProvider)}.
+   * #mailificCommandConsumer(CommandHandlerProvider)}. This implementation provides the standard
+   * set of CommandHandlers.
    *
    * @param domain Domain to be used in the Banner and EHLO responses. See {@link
    *     #bannerDomainProvider()}
    * @param greeting Greeting text to be used in EHLO response. See {@link #ehloGreetingProvider()}
    * @param mailObjectFactory see {@link #mailObjectFactory()}
+   * @param commandOverrides CommandHandlers to add to or replace those in the standard set. See
+   *     {@link #commandOverrides(BannerDomainProvider, EhloGreetingProvider, MailObjectFactory)}.
    */
   @Bean
   @ConditionalOnMissingBean
   public CommandHandlerProvider commandHandlerProvider(
       BannerDomainProvider domain,
       EhloGreetingProvider greeting,
-      MailObjectFactory mailObjectFactory) {
+      MailObjectFactory mailObjectFactory,
+      @Qualifier("commandOverrides") Collection<CommandHandler> commandOverrides) {
     return new CommandHandlerProvider() {
       public Collection<CommandHandler> commandHandlers() {
-        return Main.baseCommandHandlers(
-                domain.getBannerDomain(), greeting.getEhloGreeting(), mailObjectFactory)
-            .values();
+        Map<String, CommandHandler> handlers =
+            Main.baseCommandHandlers(
+                domain.getBannerDomain(), greeting.getEhloGreeting(), mailObjectFactory);
+        if (commandOverrides != null) {
+          commandOverrides.forEach(c -> handlers.put(c.verb().toUpperCase(), c));
+        }
+        return handlers.values();
       }
 
       public CommandHandler connectHandler() {
@@ -191,7 +201,7 @@ public class Autoconf {
   /**
    * Provides a factory for {@link MailObject} objects. You will almost certainly need to provide
    * your own implementation here. Used by {@link #commandHandlerProvider(BannerDomainProvider,
-   * EhloGreetingProvider, MailObjectFactory)}
+   * EhloGreetingProvider, MailObjectFactory, Collection<CommandHandler>)}
    */
   @Bean
   @ConditionalOnMissingBean
@@ -202,7 +212,7 @@ public class Autoconf {
   /**
    * Provides the domain to be advertised in the Banner (connect response). Also used in the EHLO
    * response. Used by {@link #commandHandlerProvider(BannerDomainProvider, EhloGreetingProvider,
-   * MailObjectFactory)}
+   * MailObjectFactory, Collection<CommandHandler>)}
    */
   @Bean
   @ConditionalOnMissingBean
@@ -212,11 +222,26 @@ public class Autoconf {
 
   /**
    * Provides the EHLO greeting text. Maybe return null. Used by {@link
-   * #commandHandlerProvider(BannerDomainProvider, EhloGreetingProvider, MailObjectFactory)}
+   * #commandHandlerProvider(BannerDomainProvider, EhloGreetingProvider, MailObjectFactory,
+   * Collection<CommandHandler>)}
    */
   @Bean
   @ConditionalOnMissingBean
   public EhloGreetingProvider ehloGreetingProvider() {
     return () -> null;
+  }
+
+  /**
+   * CommandHandlers to add to or replace those in the standard set. Used by {@link
+   * #commandHandlerProvider(BannerDomainProvider, EhloGreetingProvider, MailObjectFactory,
+   * Collection<CommandHandler>)}.
+   */
+  @Bean
+  @ConditionalOnMissingBean(name = "commandOverrides")
+  Collection<CommandHandler> commandOverrides(
+      BannerDomainProvider domain,
+      EhloGreetingProvider greeting,
+      MailObjectFactory mailObjectFactory) {
+    return Collections.emptyList();
   }
 }

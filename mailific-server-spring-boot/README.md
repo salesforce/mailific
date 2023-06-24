@@ -86,12 +86,14 @@ For an example of how to add more extensions, see Config#extensionProvider in th
 
 #### Properties
 
-* mailific.server.certPath
+* mailific.server.certPath (String): if non-null, the STARTTLS extension is included
 
 ### CommandHandlerProvider
 
 Bean wrapper for the collection of CommandHandlers to use. Depends on BannerDomainProvider,
-EhloGreetingProvider, and MailObjectFactory.
+EhloGreetingProvider, MailObjectFactory, and commandOverrides. The default implementation includes
+all the mailific implementations of the standard SMTP commands, but allows you to override or extend
+that set via the commandOverrides Bean.
 
 ### SmtpServer
 
@@ -116,7 +118,12 @@ Builds an SmtpSessionFactory from a LineConsumer Bean named `mailificCommandCons
 ExtensionProvider Bean. This bean uses the named LineConsumer Bean because LineConsumer is used in
 enough places that you might reasonably have more than one in your Config.
 
-### mailificCommandConsumer (SmtpCommandMap)
+### mailificCommandConsumer (LineConsumer)
 
 Builds an SmtpCommandMap from a CommandHandlerProvider Bean. This is the default implementation for
 the LineConsumer used to construct the SmtpSessionFactory.
+
+### commandOverrides (Collection<CommandHandler>)
+
+CommandHandlers to add to or replace those in the standard set. (Used by the CommandHandlerProvider
+Bean.)

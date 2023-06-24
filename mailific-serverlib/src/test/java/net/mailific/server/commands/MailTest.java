@@ -82,7 +82,8 @@ public class MailTest {
 
   @Test
   public void happyPath() {
-    when(mailObject.mailFrom(ArgumentMatchers.any())).thenReturn(Reply._250_OK);
+    when(mailObject.mailFrom(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenReturn(Reply._250_OK);
 
     Transition t = it.handleValidCommand(session, "MAIL FROM:<joe@example.com>");
 
@@ -101,7 +102,7 @@ public class MailTest {
   @Test
   public void mailObjectDisapproves() {
     Reply reply = new Reply(550, "Bad sender");
-    when(mailObject.mailFrom(ArgumentMatchers.any())).thenReturn(reply);
+    when(mailObject.mailFrom(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(reply);
 
     Transition t = it.handleValidCommand(session, "MAIL FROM:<joe@example.com>");
 
@@ -111,7 +112,8 @@ public class MailTest {
 
   @Test
   public void unexpectedException() {
-    when(mailObject.mailFrom(ArgumentMatchers.any())).thenThrow(NullPointerException.class);
+    when(mailObject.mailFrom(ArgumentMatchers.any(), ArgumentMatchers.any()))
+        .thenThrow(NullPointerException.class);
 
     assertThrows(
         NullPointerException.class,

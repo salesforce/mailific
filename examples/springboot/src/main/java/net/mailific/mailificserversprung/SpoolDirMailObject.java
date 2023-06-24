@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import net.mailific.server.reference.BaseMailObject;
 import net.mailific.server.session.Reply;
+import net.mailific.server.session.SmtpSession;
 
 /**
  * 
@@ -49,7 +50,7 @@ public class SpoolDirMailObject extends BaseMailObject {
 	}
 	
 	@Override
-	public Reply complete() {
+	public Reply complete(SmtpSession session) {
 		complete = true;
 			try {
 				out.close();
@@ -80,7 +81,7 @@ public class SpoolDirMailObject extends BaseMailObject {
 	}
 
 	@Override
-	public void prepareForData() {
+	public void prepareForData(SmtpSession session) {
 		try {
 			spoolFile = File.createTempFile("xxx", ".eml", spoolDir);
 			out = new BufferedOutputStream(new FileOutputStream(spoolFile));

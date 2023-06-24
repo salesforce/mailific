@@ -76,13 +76,13 @@ public class BaseMailObjectTest {
     assertThrows(
         NullPointerException.class,
         () -> {
-          it.mailFrom(null);
+          it.mailFrom(null, session);
         });
   }
 
   @Test
   public void mailFrom() {
-    Reply actual = it.mailFrom(fromLine);
+    Reply actual = it.mailFrom(fromLine, session);
 
     assertEquals(250, actual.getCode());
     assertEquals(false, actual.isImmediate());
@@ -98,7 +98,7 @@ public class BaseMailObjectTest {
   public void reversePath() {
 
     when(fromLine.getPath()).thenReturn(PATH1);
-    it.mailFrom(fromLine);
+    it.mailFrom(fromLine, session);
 
     assertEquals(PATH1, it.getReversePathMailbox());
   }
@@ -112,10 +112,10 @@ public class BaseMailObjectTest {
 
   @Test
   public void addRcptTos() {
-    Reply reply = it.rcptTo(rcpt1);
+    Reply reply = it.rcptTo(rcpt1, session);
     assertEquals(250, reply.getCode());
 
-    reply = it.rcptTo(rcpt2);
+    reply = it.rcptTo(rcpt2, session);
     assertEquals(250, reply.getCode());
 
     assertThat(it.getAcceptedRcptToLines(), contains(rcpt1, rcpt2));
@@ -136,10 +136,10 @@ public class BaseMailObjectTest {
           }
         };
 
-    Reply reply = it.rcptTo(rcpt1);
+    Reply reply = it.rcptTo(rcpt1, session);
     assertEquals(Reply._250_OK, reply);
 
-    reply = it.rcptTo(rcpt2);
+    reply = it.rcptTo(rcpt2, session);
     assertEquals(Reply._501_BAD_ARGS, reply);
 
     assertThat(it.getAcceptedRcptToLines(), contains(rcpt1));
@@ -149,10 +149,10 @@ public class BaseMailObjectTest {
 
   @Test
   public void rcptTo_notDistinct() {
-    Reply reply = it.rcptTo(rcpt1);
+    Reply reply = it.rcptTo(rcpt1, session);
     assertEquals(250, reply.getCode());
 
-    reply = it.rcptTo(rcpt2);
+    reply = it.rcptTo(rcpt2, session);
     assertEquals(250, reply.getCode());
 
     assertThat(it.getAcceptedRcptToLines(), contains(rcpt1, rcpt2));

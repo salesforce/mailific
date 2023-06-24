@@ -23,6 +23,7 @@ import java.security.cert.Certificate;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
+import javax.security.cert.X509Certificate;
 
 public class MockSslSession implements SSLSession {
 
@@ -144,5 +145,11 @@ public class MockSslSession implements SSLSession {
   public int getApplicationBufferSize() {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public X509Certificate[] getPeerCertificateChain() throws SSLPeerUnverifiedException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

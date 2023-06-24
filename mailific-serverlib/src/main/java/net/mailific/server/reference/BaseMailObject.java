@@ -51,7 +51,7 @@ public class BaseMailObject implements MailObject {
   public static final Reply COMPLETE_MAIL_OK = new Reply(250, "Message accepted.", false);
 
   @Override
-  public Reply mailFrom(ParsedCommandLine mailFrom) {
+  public Reply mailFrom(ParsedCommandLine mailFrom, SmtpSession session) {
     Objects.requireNonNull(mailFrom, "MAIL FROM line may not be null");
     this.mailFrom = mailFrom;
     return new Reply(250, String.format("sender %s OK", mailFrom.getPath()), false);
@@ -72,7 +72,7 @@ public class BaseMailObject implements MailObject {
   }
 
   @Override
-  public final Reply rcptTo(ParsedCommandLine rcpt) {
+  public final Reply rcptTo(ParsedCommandLine rcpt, SmtpSession session) {
     Objects.requireNonNull(rcpt, "RCPT TO line may not be null");
     Reply reply = offerRecipient(rcpt);
     if (reply.getCode() == 250) {

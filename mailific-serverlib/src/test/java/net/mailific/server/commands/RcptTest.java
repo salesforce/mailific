@@ -40,7 +40,6 @@ import net.mailific.server.session.Transition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -81,22 +80,22 @@ public class RcptTest {
 
   @Test
   public void happyPath() {
-    when(mailObject.rcptTo(ArgumentMatchers.any())).thenReturn(Reply._250_OK);
+    when(mailObject.rcptTo(any(), any())).thenReturn(Reply._250_OK);
 
     Transition t = it.handleValidCommand(session, "RCPT TO:<joe@example.com>");
 
-    verify(mailObject).rcptTo(any());
+    verify(mailObject).rcptTo(any(), any());
     assertThat(t, TransitionMatcher.with(Reply._250_OK, StandardStates.AFTER_RCPT));
   }
 
   @Test
   public void mailObjectObjects() {
     Reply reply = new Reply(450, "Do not want");
-    when(mailObject.rcptTo(ArgumentMatchers.any())).thenReturn(reply);
+    when(mailObject.rcptTo(any(), any())).thenReturn(reply);
 
     Transition t = it.handleValidCommand(session, "RCPT TO:<joe@example.com>");
 
-    verify(mailObject).rcptTo(any());
+    verify(mailObject).rcptTo(any(), any());
     assertThat(t, TransitionMatcher.with(reply, SessionState.NO_STATE_CHANGE));
   }
 
