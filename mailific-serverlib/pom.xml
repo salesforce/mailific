@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
 
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>
@@ -49,25 +49,38 @@
     <!-- Dependency Versions -->
 
     <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
-    <spotless.version>2.28.0</spotless.version>
+    <spotless-version>2.37.0</spotless-version>
 
     <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-    <jacoco.version>0.8.8</jacoco.version>
+    <jacoco-version>0.8.10</jacoco-version>
 
     <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
-    <netty-version>4.1.85.Final</netty-version>
+    <netty-version>4.1.94.Final</netty-version>
 
     <!-- https://mvnrepository.com/artifact/junit/junit -->
     <junit-version>4.13.2</junit-version>
 
-    <!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all -->
+    <!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest -->
     <hamcrest-version>2.2</hamcrest-version>
 
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
-    <mockito-version>4.9.0</mockito-version>
+    <mockito-version>5.4.0</mockito-version>
 
-    <!--  -->
-    <kr.motd.maven.version>1.7.1</kr.motd.maven.version>
+    <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+    <nexus-staging-version>1.6.13</nexus-staging-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
+    <maven-gpg-version>3.1.0</maven-gpg-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+    <maven-javadoc-version>3.5.0</maven-javadoc-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
+    <maven-source-version>3.3.0</maven-source-version>
+
+    <!-- https://github.com/google/google-java-format/releases -->
+    <google-java-format-version>1.17.0</google-java-format-version>
+
   </properties>
 
   <profiles>
@@ -76,10 +89,9 @@
       <build>
         <plugins>
           <plugin>
-            <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.13</version>
+            <version>${nexus-staging-version}</version>
             <extensions>true</extensions>
             <configuration>
               <serverId>ossrh</serverId>
@@ -90,7 +102,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
+            <version>${maven-gpg-version}</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -104,7 +116,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.4.1</version>
+            <version>${maven-javadoc-version}</version>
             <executions>
               <execution>
                 <id>attach-javadoc</id>
@@ -117,7 +129,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.2.1</version>
+            <version>${maven-source-version}</version>
             <executions>
               <execution>
                 <id>attach-source</id>
@@ -167,11 +179,11 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>${spotless.version}</version>
+        <version>${spotless-version}</version>
         <configuration>
           <java>
             <googleJavaFormat>
-              <version>1.15.0</version>
+              <version>${google-java-format-version}</version>
               <style>GOOGLE</style>
               <reflowLongStrings>true</reflowLongStrings>
             </googleJavaFormat>
@@ -195,7 +207,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${jacoco.version}</version>
+        <version>${jacoco-version}</version>
         <executions>
           <execution>
             <goals>
