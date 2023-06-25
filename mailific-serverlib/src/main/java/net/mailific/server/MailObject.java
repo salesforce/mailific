@@ -46,9 +46,10 @@ import net.mailific.server.session.SmtpSession;
  *   <li>{@link #dispose()} may be called at any time, after which none of the other methods will be
  *       called.
  *   <li>Otherwise, the methods will only be called in the order given above.
- *   <li>{@link #mailFrom(ParsedCommandLine)} and {@link #complete()} will be called only once.
- *   <li>{@link #rcptTo(ParsedCommandLine)}, {@link #writeLine(byte[], int, int)}, and {@link
- *       #dispose()} may be called any number of times.
+ *   <li>{@link #mailFrom(ParsedCommandLine, SmtpSession)} and {@link #complete(SmtpSession)} will
+ *       be called only once.
+ *   <li>{@link #rcptTo(ParsedCommandLine, SmtpSession)}, {@link #writeLine(byte[], int, int)}, and
+ *       {@link #dispose()} may be called any number of times.
  * </ul>
  *
  * @author jhumphreys

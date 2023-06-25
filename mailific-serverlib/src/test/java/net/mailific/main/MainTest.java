@@ -233,6 +233,7 @@ public class MainTest {
 
     assertThat(e.getMessage(), containsString("Cannot read cert key"));
   }
+
   /*
     @Test
     public void determineListenAddress_default() throws Exception {
