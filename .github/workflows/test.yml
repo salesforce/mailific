@@ -18,4 +18,4 @@ jobs:
           distribution: 'zulu'
           cache: maven
       - name: build with maven
-        run: mvn --batch-mode --package
+        run: mvn --batch-mode package
