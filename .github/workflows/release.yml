@@ -26,7 +26,7 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
       - name: Publish package
-        run: mvn --batch-mode deploy -Dgpg.passphrase=${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+        run: mvn -Prelease --batch-mode deploy -Dgpg.passphrase=${{ secrets.JRELEASER_GPG_PASSPHRASE }} --projects mailific-serverlib,mailific-server-spring-boot
         env:
           MAVEN_USERNAME: ${{ secrets.JRELEASER_NEXUS2_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.JRELEASER_NEXUS2_PASSWORD }}

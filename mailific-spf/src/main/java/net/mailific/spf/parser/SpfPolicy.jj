@@ -1,0 +1,207 @@
+/**
+ * JavaCC template file
+ */
+options
+{
+    static = false;
+    output_directory = "../../../../../../../target/generated-sources/javacc/net/mailific/spf/parser";
+}
+PARSER_BEGIN(SpfPolicy)package net.mailific.spf.parser;
+
+import java.util.ArrayList;
+import net.mailific.spf.policy.*;
+
+public class SpfPolicy {
+    public static void main(String args []) throws ParseException
+    {
+        try {
+            SpfPolicy parser = new SpfPolicy(System.in);
+            Policy policy = parser.policy();
+            System.out.println(policy.getVersion());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+PARSER_END(SpfPolicy)
+
+SKIP: {" "}
+
+TOKEN:
+{
+  < VERSION: "v=spf1" >
+}
+
+TOKEN:
+{
+  <  ALPHANUM: ( < ALPHA > | < DIGIT > ) >
+ |   < ALPHA: ["a"-"z", "A"-"Z"] >
+ |  < DIGIT: ["0"-"9"] >
+}
+
+< DSPEC > TOKEN:
+{
+  < TOPLABEL: ( ( < ALPHANUM > )* < ALPHA > ( < ALPHANUM > )* )
+              | ( < ALPHANUM > "-" ( < ALPHANUM > | "-" )* < ALPHANUM > ) >
+}
+
+< DSPEC > TOKEN:
+{
+	< MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" ,"c", "r", "t", "v"] >
+}
+
+< DSPEC > TOKEN:
+{
+	<  TRANSFORMERS: ( ["0"-"9"] )* ( "r" )? >
+}	
+
+< DSPEC > TOKEN:
+{
+	< DELIMITER: [".", "-", "+", ",", "/", "_", "="] >
+}
+
+< DSPEC > TOKEN:
+{
+  <  MACRO_EXPAND: ( "%{" < MACRO_LETTER > < TRANSFORMERS > ( < DELIMITER > )* "}" ) >
+}  
+
+< DSPEC > TOKEN:
+{
+  < DOMAIN_END: "." < TOPLABEL > ( "." )? | < MACRO_EXPAND > >
+}
+
+< DSPEC > TOKEN:
+{
+  < MACRO_LITERAL: ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
+                    "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
+                    "_", "`", "a"-"z","{", "|", "}", "~"] >
+}
+
+< DSPEC > TOKEN:
+{
+  < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* >
+}
+
+< DSPEC > TOKEN:
+{
+  < DOMAIN_SPEC: < MACRO_STRING > < DOMAIN_END > >
+}
+
+/**
+TOKEN:
+{
+
+
+   terms            = *( 1*SP ( directive / modifier ) )
+
+   directive        = [ qualifier ] mechanism
+   qualifier        = "+" / "-" / "?" / "~"
+   mechanism        = ( all / include
+                      / a / mx / ptr / ip4 / ip6 / exists )
+   modifier         = redirect / explanation / unknown-modifier
+   unknown-modifier = name "=" macro-string
+                      ; where name is not any known modifier
+
+   name             = ALPHA *( ALPHA / DIGIT / "-" / "_" / "." )
+
+   toplabel         = ( *alphanum ALPHA *alphanum ) /
+                      ( 1*alphanum "-" *( alphanum / "-" ) alphanum )
+   alphanum         = ALPHA / DIGIT
+
+   explain-string   = *( macro-string / SP )
+
+   macro-string     = *( macro-expand / macro-literal )
+   macro-expand     = ( "%{" macro-letter transformers *delimiter "}" )
+                      / "%%" / "%_" / "%-"
+   macro-literal    = %x21-24 / %x26-7E
+                      ; visible characters except "%"
+   macro-letter     = "s" / "l" / "o" / "d" / "i" / "p" / "h" /
+                      "c" / "r" / "t" / "v"
+   transformers     = *DIGIT [ "r" ]
+   delimiter        = "." / "-" / "+" / "," / "/" / "_" / "="
+
+*/
+
+TOKEN:
+{
+  < QUALIFIER : ["-", "+", "?", "~"] >
+}
+
+TOKEN:
+{
+  < ALL : "all" >
+}
+
+TOKEN:
+{
+	< INCLUDE : "include" > : DSPEC
+}
+
+Mechanism mechanism():
+{
+	Token t = null;
+}
+{
+  (    <  ALL >
+    {
+      return new All();
+    }
+  |
+    ( < INCLUDE > ":" t = < DOMAIN_SPEC >
+      {
+		return new Include();
+      }
+    )
+  ) 
+}
+
+Directive directive():
+{
+  Token t = null;
+  Qualifier qualifier = null;
+  Mechanism mechanism = null;
+}
+{
+  (
+    t = < QUALIFIER >
+	{
+	  qualifier = Qualifier.fromSymbol(t.image);
+	}
+   )?
+    mechanism = mechanism()
+	{
+	  return new Directive(qualifier, mechanism);	
+	}
+}
+
+Term term() :
+{
+	Term term = null;
+}
+{
+	(		 term =	directive()
+         {
+           return term;
+         }
+    )
+}
+
+public Policy policy() :
+{
+    Token t = null;
+	String version;
+	Term term = null;
+	ArrayList<Term> terms = new ArrayList<>();
+  }
+{
+ 	     t = <VERSION>
+ 	     { version = t.image; }
+ 	     (
+ 		   term = term()       
+ 	       { terms.add(term); }
+ 	     )*
+ 	     < EOF >
+ 	 {
+ 	   return new Policy(version, terms);
+ 	 } 
+}

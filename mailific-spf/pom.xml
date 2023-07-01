@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.mailific</groupId>
+  <artifactId>mailific-spf</artifactId>
+  <version>0.0.1</version>
+
+  <name>Mailific SPF Checker</name>
+  <description>Library for checking SPF, per RFC7208</description>
+  <url>https://mailific.net</url>
+  <inceptionYear>2023</inceptionYear>
+
+  <scm>
+    <connection>scm:git:git://github.com:salesforce/mailific.git</connection>
+    <developerConnection>scm:git:ssh://github.com:salesforce/mailific.git</developerConnection>
+    <url>https://github.com/salesforce/mailific/tree/main</url>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <name>Central Repository OSSRH</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </distributionManagement>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Joe Humphreys</name>
+      <email>jhumphreys@salesforce.com</email>
+      <organizationUrl>http://www.salesforce.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Dependency Versions -->
+
+    <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
+    <spotless-version>2.37.0</spotless-version>
+
+    <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+    <jacoco-version>0.8.10</jacoco-version>
+
+    <!-- https://mvnrepository.com/artifact/junit/junit -->
+    <junit-version>4.13.2</junit-version>
+
+    <!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest -->
+    <hamcrest-version>2.2</hamcrest-version>
+
+    <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+    <mockito-version>5.4.0</mockito-version>
+
+    <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+    <nexus-staging-version>1.6.13</nexus-staging-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
+    <maven-gpg-version>3.1.0</maven-gpg-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
+    <maven-javadoc-version>3.5.0</maven-javadoc-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
+    <maven-source-version>3.3.0</maven-source-version>
+
+    <!-- https://github.com/google/google-java-format/releases -->
+    <google-java-format-version>1.17.0</google-java-format-version>
+
+    <!-- https://mvnrepository.com/artifact/net.java.dev.javacc/javacc -->
+    <javacc-version>7.0.12</javacc-version>
+
+    <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/javacc-maven-plugin -->
+    <javacc-maven-version>3.0.1</javacc-maven-version>
+
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>${nexus-staging-version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                  <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven-javadoc-version}</version>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven-source-version}</version>
+            <executions>
+              <execution>
+                <id>attach-source</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.java.dev.javacc</groupId>
+      <artifactId>javacc</artifactId>
+      <version>${javacc-version}</version>
+    </dependency>
+    <!--  TEST DEPENDENCIES -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${hamcrest-version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless-version}</version>
+        <configuration>
+          <java>
+            <googleJavaFormat>
+              <version>${google-java-format-version}</version>
+              <style>GOOGLE</style>
+              <reflowLongStrings>true</reflowLongStrings>
+            </googleJavaFormat>
+            <licenseHeader>
+              <file>${project.basedir}/license-header</file>
+            </licenseHeader>
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <id>spotless-apply</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <version>${javacc-maven-version}</version>
+        <executions>
+          <execution>
+            <id>javacc</id>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+            <configuration>
+<!--
+              <debugParser>true</debugParser>
+              <debugTokenManager>true</debugTokenManager>
+-->
+              <unicodeInput>true</unicodeInput>
+              <sourceDirectory>
+                ${basedir}/src/main/java
+              </sourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+    </plugins>
+  </build>
+</project>
