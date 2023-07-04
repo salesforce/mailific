@@ -18,4 +18,15 @@
 
 package net.mailific.spf.policy;
 
-public class Include extends Mechanism {}
+public class Include extends Mechanism {
+
+  private final String domainSpec;
+
+  public Include(String domainSpec) {
+    this.domainSpec = domainSpec;
+  }
+
+  public String toString() {
+    return "include:" + domainSpec;
+  }
+}

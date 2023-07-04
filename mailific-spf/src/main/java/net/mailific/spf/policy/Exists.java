@@ -18,9 +18,15 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class Exists extends Mechanism {
+
+  private final String domainSpec;
+
+  public Exists(String domainSpec) {
+    this.domainSpec = domainSpec;
+  }
 
   public String toString() {
-    return "all";
+    return "exists:" + domainSpec;
   }
 }

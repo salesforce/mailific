@@ -18,9 +18,16 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class Ip4 extends Mechanism {
+  private final String ip4Network;
+  private final String cidrLength;
+
+  public Ip4(String ip4Network, String cidrLength) {
+    this.ip4Network = ip4Network;
+    this.cidrLength = cidrLength;
+  }
 
   public String toString() {
-    return "all";
+    return "ip4:" + ip4Network + (cidrLength == null ? "" : cidrLength);
   }
 }

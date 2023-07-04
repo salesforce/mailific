@@ -18,8 +18,4 @@
 
 package net.mailific.spf.policy;
 
-public class Term {
-
-  /** FIXME */
-  public Term(String s) {}
-}
+public class Term {}

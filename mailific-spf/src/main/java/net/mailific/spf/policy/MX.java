@@ -18,9 +18,18 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class MX extends Mechanism {
+  private final String domainSpec;
+  private final String cidrLength;
+
+  public MX(String domainSpec, String cidrLength) {
+    this.domainSpec = domainSpec;
+    this.cidrLength = cidrLength;
+  }
 
   public String toString() {
-    return "all";
+    return "mx"
+        + (domainSpec == null ? "" : ":" + domainSpec)
+        + (cidrLength == null ? "" : cidrLength);
   }
 }

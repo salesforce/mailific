@@ -18,9 +18,14 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class Ptr extends Mechanism {
+  private final String domainSpec;
+
+  public Ptr(String domainSpec) {
+    this.domainSpec = domainSpec;
+  }
 
   public String toString() {
-    return "all";
+    return "ptr" + (domainSpec == null ? "" : ":" + domainSpec);
   }
 }

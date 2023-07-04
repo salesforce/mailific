@@ -24,7 +24,6 @@ public class Directive extends Term {
   private final Mechanism mechanism;
 
   public Directive(Qualifier qualifier, Mechanism mechanism) {
-    super("foo");
     this.qualifier = qualifier == null ? Qualifier.PASS : qualifier;
     this.mechanism = mechanism;
   }
@@ -35,5 +34,9 @@ public class Directive extends Term {
 
   public Mechanism getMechanism() {
     return mechanism;
+  }
+
+  public String toString() {
+    return qualifier.getSymbol() + mechanism;
   }
 }

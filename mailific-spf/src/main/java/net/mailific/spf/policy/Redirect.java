@@ -18,9 +18,15 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class Redirect extends Modifier {
+
+  private final String domainSpec;
+
+  public Redirect(String domainSpec) {
+    this.domainSpec = domainSpec;
+  }
 
   public String toString() {
-    return "all";
+    return "redirect=" + domainSpec;
   }
 }

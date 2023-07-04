@@ -1,4 +1,20 @@
 /**
+ * Mailific SMTP Server Library
+ *
+ * Copyright (C) 2023 Joe Humphreys
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  * JavaCC template file
  */
 options
@@ -17,7 +33,7 @@ public class SpfPolicy {
         try {
             SpfPolicy parser = new SpfPolicy(System.in);
             Policy policy = parser.policy();
-            System.out.println(policy.getVersion());
+            System.out.println(policy.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -34,15 +50,9 @@ TOKEN:
 
 TOKEN:
 {
-  <  ALPHANUM: ( < ALPHA > | < DIGIT > ) >
- |   < ALPHA: ["a"-"z", "A"-"Z"] >
- |  < DIGIT: ["0"-"9"] >
-}
-
-< DSPEC > TOKEN:
-{
-  < TOPLABEL: ( ( < ALPHANUM > )* < ALPHA > ( < ALPHANUM > )* )
-              | ( < ALPHANUM > "-" ( < ALPHANUM > | "-" )* < ALPHANUM > ) >
+  <  #ALPHANUM: ( < ALPHA > | < DIGIT > ) >
+ |   < #ALPHA: ["a"-"z", "A"-"Z"] >
+ |  < #DIGIT: ["0"-"9"] >
 }
 
 < DSPEC > TOKEN:
@@ -63,11 +73,6 @@ TOKEN:
 < DSPEC > TOKEN:
 {
   <  MACRO_EXPAND: ( "%{" < MACRO_LETTER > < TRANSFORMERS > ( < DELIMITER > )* "}" ) >
-}  
-
-< DSPEC > TOKEN:
-{
-  < DOMAIN_END: "." < TOPLABEL > ( "." )? | < MACRO_EXPAND > >
 }
 
 < DSPEC > TOKEN:
@@ -79,48 +84,18 @@ TOKEN:
 
 < DSPEC > TOKEN:
 {
-  < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* >
+  < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* > : DEFAULT
 }
 
-< DSPEC > TOKEN:
-{
-  < DOMAIN_SPEC: < MACRO_STRING > < DOMAIN_END > >
-}
 
 /**
+	Choosing to be a little easier than the BNF. Will verify appropriate range in code. 
+*/
+
 TOKEN:
 {
-
-
-   terms            = *( 1*SP ( directive / modifier ) )
-
-   directive        = [ qualifier ] mechanism
-   qualifier        = "+" / "-" / "?" / "~"
-   mechanism        = ( all / include
-                      / a / mx / ptr / ip4 / ip6 / exists )
-   modifier         = redirect / explanation / unknown-modifier
-   unknown-modifier = name "=" macro-string
-                      ; where name is not any known modifier
-
-   name             = ALPHA *( ALPHA / DIGIT / "-" / "_" / "." )
-
-   toplabel         = ( *alphanum ALPHA *alphanum ) /
-                      ( 1*alphanum "-" *( alphanum / "-" ) alphanum )
-   alphanum         = ALPHA / DIGIT
-
-   explain-string   = *( macro-string / SP )
-
-   macro-string     = *( macro-expand / macro-literal )
-   macro-expand     = ( "%{" macro-letter transformers *delimiter "}" )
-                      / "%%" / "%_" / "%-"
-   macro-literal    = %x21-24 / %x26-7E
-                      ; visible characters except "%"
-   macro-letter     = "s" / "l" / "o" / "d" / "i" / "p" / "h" /
-                      "c" / "r" / "t" / "v"
-   transformers     = *DIGIT [ "r" ]
-   delimiter        = "." / "-" / "+" / "," / "/" / "_" / "="
-
-*/
+  < CIDR_LENGTH : "/" < DIGIT > ( < DIGIT > ( < DIGIT > )? )? >
+}
 
 TOKEN:
 {
@@ -134,12 +109,95 @@ TOKEN:
 
 TOKEN:
 {
-	< INCLUDE : "include" > : DSPEC
+	< INCLUDE : "include" >
 }
+
+TOKEN:
+{
+  <  A : "a" >
+}
+
+TOKEN:
+{
+  <  MX : "mx" >
+}
+
+TOKEN:
+{
+  <  PTR : "ptr" >
+}
+
+TOKEN:
+{
+	< EXISTS : "exists" >
+}
+
+
+TOKEN:
+{
+  < IP4 : "ip4:" > : IPNET
+}
+
+TOKEN:
+{
+  < IP6 : "ip6:" > : IPNET
+}
+
+<IPNET> TOKEN:
+{
+  < QNUM : ( ["0"-"9"] | ["1"-"9"] ["0"-"9"] | "1" ["0"-"9"] ["0"-"9"]
+            | "2" ["0"-"4"] ["0"-"9"] | "25" ["0"-"5"] ) >
+}
+
+<IPNET> TOKEN:
+{
+  < IP4_NETWORK : < QNUM > "." < QNUM > "." < QNUM > "." < QNUM > > : DEFAULT
+}
+
+TOKEN:
+{
+  < #I6DIG : ["0"-"9","A"-"F","a"-"f"] >
+}
+
+TOKEN:
+{
+  < #I6DIGS : < I6DIG > | < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > < I6DIG > >
+}
+
+<IPNET> TOKEN:
+{
+  < IP6_NETWORK : "::" ( < IP4_NETWORK > )? | "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
+                  | < I6DIGS > ( ":" < I6DIGS > )+ "::" ( < IP4_NETWORK > )?
+                  | < I6DIGS > ( ":" < I6DIGS > )* "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
+  > : DEFAULT
+}
+
+TOKEN:
+{
+        < COLON : ":" > : DSPEC
+}
+
+TOKEN:
+{
+  < REDIRECT : "redirect=" > : DSPEC
+}
+
+TOKEN:
+{
+  < EXPLANATION : "exp=" > : DSPEC
+}
+
+TOKEN:
+{
+  < UNKNOWN_MOD : < ALPHA > ( ["a"-"z","A"-"Z","0"-"9","-","_","."] )* "=" > : DSPEC
+}
+
 
 Mechanism mechanism():
 {
 	Token t = null;
+	String dspec = null;
+	String cidr = null;
 }
 {
   (    <  ALL >
@@ -147,12 +205,48 @@ Mechanism mechanism():
       return new All();
     }
   |
-    ( < INCLUDE > ":" t = < DOMAIN_SPEC >
+    ( < INCLUDE > < COLON > t = < MACRO_STRING >
       {
-		return new Include();
+		return new Include(t.image);
       }
     )
-  ) 
+  |
+    (      < A > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      {
+        return new A(dspec, cidr);
+      }
+    )
+  |
+    (      < MX > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      {
+        return new MX(dspec, cidr);
+      }
+    )
+  |
+    (      < PTR > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )?
+      {
+        return new Ptr(dspec);
+      }
+    )
+  |
+    (      < IP4 > ( t = < IP4_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      {
+        return new Ip4(dspec, cidr);
+      }
+    )
+  |
+    (      < IP6 > ( t = < IP6_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      {
+        return new Ip6(dspec, cidr);
+      }
+    )
+  |
+    ( < EXISTS > < COLON > t = < MACRO_STRING >
+      {
+		return new Exists(t.image);
+      }
+    )
+  )   
 }
 
 Directive directive():
@@ -174,15 +268,39 @@ Directive directive():
 	}
 }
 
+Modifier modifier():
+{
+  Token t = null;
+  String name = null;
+  String spec = null;
+}
+{
+  ( < REDIRECT > t = < MACRO_STRING >
+    {
+      return new Redirect(t.image);
+    }
+  |
+    ( < EXPLANATION > t = < MACRO_STRING >
+      {
+		return new Explanation(t.image);
+      }
+    )
+  |
+    ( t = < UNKNOWN_MOD > { name = t.image; } t = < MACRO_STRING > { spec = t.image; }
+      {
+		return new UnknownModifier(name, spec);
+      }
+    )
+  )
+}
+
 Term term() :
 {
 	Term term = null;
 }
 {
-	(		 term =	directive()
-         {
-           return term;
-         }
+   (      term =	directive() { return term; } 
+        | term = modifier() { return term; }
     )
 }
 

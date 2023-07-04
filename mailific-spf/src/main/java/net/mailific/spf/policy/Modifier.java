@@ -18,9 +18,4 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
-
-  public String toString() {
-    return "all";
-  }
-}
+public class Modifier extends Term {}

@@ -19,6 +19,7 @@
 package net.mailific.spf.policy;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Policy {
 
@@ -36,5 +37,14 @@ public class Policy {
 
   public String getVersion() {
     return version;
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("\"");
+    sb.append(getVersion());
+    sb.append(getTerms().stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
+    sb.append("\"");
+    return sb.toString();
   }
 }

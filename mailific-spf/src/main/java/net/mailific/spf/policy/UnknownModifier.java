@@ -18,9 +18,17 @@
 
 package net.mailific.spf.policy;
 
-public class All extends Mechanism {
+public class UnknownModifier extends Modifier {
+
+  private final String name;
+  private final String macroString;
+
+  public UnknownModifier(String name, String macroString) {
+    this.name = name;
+    this.macroString = macroString;
+  }
 
   public String toString() {
-    return "all";
+    return name + "=" + macroString;
   }
 }
