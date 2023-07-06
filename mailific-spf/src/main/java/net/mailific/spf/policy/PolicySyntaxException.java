@@ -18,4 +18,9 @@
 
 package net.mailific.spf.policy;
 
-public class Modifier {}
+public class PolicySyntaxException extends Exception {
+
+  public PolicySyntaxException(String message) {
+    super(message);
+  }
+}

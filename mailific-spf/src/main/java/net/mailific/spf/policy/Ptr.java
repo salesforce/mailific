@@ -18,7 +18,10 @@
 
 package net.mailific.spf.policy;
 
-public class Ptr extends Mechanism {
+import java.net.Inet4Address;
+import net.mailific.spf.LookupCount;
+
+public class Ptr implements Mechanism {
   private final String domainSpec;
 
   public Ptr(String domainSpec) {
@@ -27,5 +30,16 @@ public class Ptr extends Mechanism {
 
   public String toString() {
     return "ptr" + (domainSpec == null ? "" : ":" + domainSpec);
+  }
+
+  @Override
+  public boolean causesLookup() {
+    return true;
+  }
+
+  @Override
+  public boolean matches(Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'matches'");
   }
 }

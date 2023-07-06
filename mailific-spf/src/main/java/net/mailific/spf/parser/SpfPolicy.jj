@@ -27,8 +27,9 @@ PARSER_BEGIN(SpfPolicy)package net.mailific.spf.parser;
 import java.util.ArrayList;
 import net.mailific.spf.policy.*;
 
+@SuppressWarnings("unused")
 public class SpfPolicy {
-    public static void main(String args []) throws ParseException
+    public static void main(String args []) throws ParseException, PolicySyntaxException
     {
         try {
             SpfPolicy parser = new SpfPolicy(System.in);
@@ -193,7 +194,7 @@ TOKEN:
 }
 
 
-Mechanism mechanism():
+Mechanism mechanism() throws PolicySyntaxException :
 {
 	Token t = null;
 	String dspec = null;
@@ -249,7 +250,7 @@ Mechanism mechanism():
   )   
 }
 
-Directive directive():
+Directive directive() throws PolicySyntaxException :
 {
   Token t = null;
   Qualifier qualifier = null;
@@ -294,32 +295,24 @@ Modifier modifier():
   )
 }
 
-Term term() :
-{
-	Term term = null;
-}
-{
-   (      term =	directive() { return term; } 
-        | term = modifier() { return term; }
-    )
-}
-
-public Policy policy() :
+public Policy policy() throws PolicySyntaxException :
 {
     Token t = null;
 	String version;
-	Term term = null;
-	ArrayList<Term> terms = new ArrayList<>();
+	Directive directive = null;
+        Modifier modifier = null;
+	ArrayList<Directive> directives = new ArrayList<>();
+	ArrayList<Modifier> modifiers = new ArrayList<>();
   }
 {
  	     t = <VERSION>
  	     { version = t.image; }
  	     (
- 		   term = term()       
- 	       { terms.add(term); }
+ 	       directive = directive() { directives.add(directive); }
+               | modifier = modifier() { modifiers.add(modifier); }
  	     )*
  	     < EOF >
  	 {
- 	   return new Policy(version, terms);
+ 	   return new Policy(version, directives, modifiers);
  	 } 
 }

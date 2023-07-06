@@ -24,15 +24,13 @@ import java.util.stream.Collectors;
 public class Policy {
 
   private final String version;
-  private final List<Term> terms;
+  private final List<Directive> directives;
+  private final List<Modifier> modifiers;
 
-  public Policy(String version, List<Term> terms) {
+  public Policy(String version, List<Directive> directives, List<Modifier> modifiers) {
     this.version = version;
-    this.terms = terms;
-  }
-
-  public List<Term> getTerms() {
-    return terms;
+    this.directives = directives;
+    this.modifiers = modifiers;
   }
 
   public String getVersion() {
@@ -43,7 +41,8 @@ public class Policy {
     StringBuilder sb = new StringBuilder();
     sb.append("\"");
     sb.append(getVersion());
-    sb.append(getTerms().stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
+    sb.append(directives.stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
+    sb.append(modifiers.stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
     sb.append("\"");
     return sb.toString();
   }

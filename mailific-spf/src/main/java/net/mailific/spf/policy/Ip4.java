@@ -18,7 +18,10 @@
 
 package net.mailific.spf.policy;
 
-public class Ip4 extends Mechanism {
+import java.net.Inet4Address;
+import net.mailific.spf.LookupCount;
+
+public class Ip4 implements Mechanism {
   private final String ip4Network;
   private final String cidrLength;
 
@@ -29,5 +32,16 @@ public class Ip4 extends Mechanism {
 
   public String toString() {
     return "ip4:" + ip4Network + (cidrLength == null ? "" : cidrLength);
+  }
+
+  @Override
+  public boolean causesLookup() {
+    return false;
+  }
+
+  @Override
+  public boolean matches(Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'matches'");
   }
 }

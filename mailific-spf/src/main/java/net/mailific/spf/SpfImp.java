@@ -18,12 +18,19 @@
 
 package net.mailific.spf;
 
+import java.io.ByteArrayInputStream;
 import java.net.Inet4Address;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.dns.NameResolver;
+import net.mailific.spf.parser.ParseException;
+import net.mailific.spf.parser.SpfPolicy;
+import net.mailific.spf.policy.Directive;
+import net.mailific.spf.policy.Policy;
+import net.mailific.spf.policy.PolicySyntaxException;
 
 public class SpfImp implements Spf {
 
@@ -36,15 +43,26 @@ public class SpfImp implements Spf {
 
   @Override
   public Result checkHost(Inet4Address ip, String domain, String sender) {
-    return checkHost(ip, domain, sender, lookupLimit, 0);
+    return checkHost(ip, domain, sender, new LookupCount(lookupLimit));
   }
 
-  private Result checkHost(
-      Inet4Address ip, String domain, String sender, int lookupLimit, int lookups) {
+  private Result checkHost(Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
     try {
       verifyDomain(domain);
       String spfRecord = lookupSpfRecord(domain);
-
+      Policy policy =
+          new SpfPolicy(
+                  new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)),
+                  "US_ASCII")
+              .policy();
+      for (Directive directive : policy.getDirectives()) {
+        Result result = directive.evaluate(ip, domain, sender, lookupCount);
+        if (result != null) {
+          return result;
+        }
+      }
+    } catch (ParseException | PolicySyntaxException e) {
+      return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {
       return e.result;
     }
@@ -99,16 +117,6 @@ public class SpfImp implements Spf {
     }
     if (!DOMAIN_CHARS_PATTERN.matcher(domain).matches()) {
       throw new Abort(ResultCode.None, "Illegal domain characters: " + domain);
-    }
-  }
-
-  private static class Abort extends Exception {
-
-    Result result;
-
-    Abort(ResultCode code, String detail) {
-      super(detail);
-      this.result = new Result(code, detail);
     }
   }
 }

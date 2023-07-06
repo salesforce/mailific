@@ -84,6 +84,9 @@
     <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/javacc-maven-plugin -->
     <javacc-maven-version>3.0.1</javacc-maven-version>
 
+    <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/build-helper-maven-plugin -->
+    <build-helper-version>3.4.0</build-helper-version>
+
   </properties>
 
   <profiles>
@@ -228,7 +231,25 @@
         </executions>
       </plugin>
 
-
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-version}</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/javacc</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

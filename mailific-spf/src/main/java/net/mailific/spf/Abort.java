@@ -16,6 +16,14 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf;
 
-public class Term {}
+public class Abort extends Exception {
+
+  Result result;
+
+  Abort(ResultCode code, String detail) {
+    super(detail);
+    this.result = new Result(code, detail);
+  }
+}

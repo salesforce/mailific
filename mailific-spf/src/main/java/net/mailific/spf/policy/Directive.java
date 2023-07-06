@@ -18,7 +18,12 @@
 
 package net.mailific.spf.policy;
 
-public class Directive extends Term {
+import java.net.Inet4Address;
+import net.mailific.spf.Abort;
+import net.mailific.spf.LookupCount;
+import net.mailific.spf.Result;
+
+public class Directive {
 
   private final Qualifier qualifier;
   private final Mechanism mechanism;
@@ -38,5 +43,21 @@ public class Directive extends Term {
 
   public String toString() {
     return qualifier.getSymbol() + mechanism;
+  }
+
+  /**
+   * @return a result if the mechanism matched, or otherwise led to a final disposition. Otherwise
+   *     null.
+   * @throws Abort
+   */
+  public Result evaluate(Inet4Address ip, String domain, String sender, LookupCount lookupCount)
+      throws Abort {
+    if (mechanism.causesLookup()) {
+      lookupCount.inc();
+    }
+    if (mechanism.matches(ip, domain, sender, lookupCount)) {
+      return new Result(qualifier.getResultCode(), "matched " + toString());
+    }
+    return null;
   }
 }

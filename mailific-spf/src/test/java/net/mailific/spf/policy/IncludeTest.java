@@ -18,4 +18,18 @@
 
 package net.mailific.spf.policy;
 
-public class Modifier {}
+import static org.junit.Assert.assertThrows;
+
+import org.junit.Test;
+
+public class IncludeTest {
+
+  @Test
+  public void nullDomain() {
+    assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          new Include(null);
+        });
+  }
+}

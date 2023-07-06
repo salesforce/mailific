@@ -18,15 +18,32 @@
 
 package net.mailific.spf.policy;
 
-public class Include extends Mechanism {
+import java.net.Inet4Address;
+import net.mailific.spf.LookupCount;
+
+public class Include implements Mechanism {
 
   private final String domainSpec;
 
-  public Include(String domainSpec) {
+  public Include(String domainSpec) throws PolicySyntaxException {
+    if (domainSpec == null || domainSpec.isBlank()) {
+      throw new PolicySyntaxException("Include domainSpec can't be empty.");
+    }
     this.domainSpec = domainSpec;
   }
 
   public String toString() {
     return "include:" + domainSpec;
+  }
+
+  @Override
+  public boolean causesLookup() {
+    return true;
+  }
+
+  @Override
+  public boolean matches(Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'matches'");
   }
 }

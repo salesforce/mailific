@@ -18,4 +18,4 @@
 
 package net.mailific.spf.policy;
 
-public class Modifier {}
+public class PolicyTest {}

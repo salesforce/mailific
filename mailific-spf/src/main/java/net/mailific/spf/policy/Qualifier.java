@@ -18,15 +18,20 @@
 
 package net.mailific.spf.policy;
 
-public enum Qualifier {
-  PASS("+"),
-  FAIL("-"),
-  SOFT_FAIL("?"),
-  NEUTRAL("~");
-  private final String symbol;
+import net.mailific.spf.ResultCode;
 
-  private Qualifier(String symbol) {
+public enum Qualifier {
+  PASS("+", ResultCode.Pass),
+  FAIL("-", ResultCode.Fail),
+  SOFT_FAIL("?", ResultCode.Softfail),
+  NEUTRAL("~", ResultCode.Neutral);
+
+  private final String symbol;
+  private final ResultCode resultCode;
+
+  private Qualifier(String symbol, ResultCode resultCode) {
     this.symbol = symbol;
+    this.resultCode = resultCode;
   }
 
   public String getSymbol() {
@@ -46,5 +51,9 @@ public enum Qualifier {
       default:
         throw new IllegalArgumentException("No such qualifier: " + s);
     }
+  }
+
+  public ResultCode getResultCode() {
+    return resultCode;
   }
 }
