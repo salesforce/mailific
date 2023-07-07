@@ -16,26 +16,14 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf;
 
 import java.net.Inet4Address;
-import net.mailific.spf.LookupCount;
-import net.mailific.spf.Spf;
+import net.mailific.spf.dns.NameResolver;
 
-public class All implements Mechanism {
+public interface SpfUtil extends Spf {
 
-  public String toString() {
-    return "all";
-  }
+  String expand(Inet4Address ip, String domain, String sender);
 
-  @Override
-  public boolean causesLookup() {
-    return false;
-  }
-
-  @Override
-  public boolean matches(
-      Spf spf, Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
-    return true;
-  }
+  NameResolver getNameResolver();
 }

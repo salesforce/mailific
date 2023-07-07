@@ -32,7 +32,7 @@ import net.mailific.spf.policy.Directive;
 import net.mailific.spf.policy.Policy;
 import net.mailific.spf.policy.PolicySyntaxException;
 
-public class SpfImp implements Spf {
+public class SpfImp implements SpfUtil {
 
   private int lookupLimit = 10;
   private NameResolver resolver;
@@ -50,14 +50,14 @@ public class SpfImp implements Spf {
     try {
       verifyDomain(domain);
       String spfRecord = lookupSpfRecord(domain);
-      Policy policy =
+      SpfPolicy parser =
           new SpfPolicy(
-                  new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)),
-                  "US_ASCII")
-              .policy();
+              new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US_ASCII");
+      Policy policy = parser.policy();
       for (Directive directive : policy.getDirectives()) {
-        Result result = directive.evaluate(ip, domain, sender, lookupCount);
+        Result result = directive.evaluate(this, ip, domain, sender, lookupCount);
         if (result != null) {
+          // TODO exp
           return result;
         }
       }
@@ -118,5 +118,15 @@ public class SpfImp implements Spf {
     if (!DOMAIN_CHARS_PATTERN.matcher(domain).matches()) {
       throw new Abort(ResultCode.None, "Illegal domain characters: " + domain);
     }
+  }
+
+  @Override
+  public String expand(Inet4Address ip, String domain, String sender) {
+    throw new UnsupportedOperationException("Unimplemented method 'expand'");
+  }
+
+  @Override
+  public NameResolver getNameResolver() {
+    return resolver;
   }
 }

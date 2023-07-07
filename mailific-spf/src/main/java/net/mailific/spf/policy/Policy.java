@@ -37,6 +37,14 @@ public class Policy {
     return version;
   }
 
+  public List<Directive> getDirectives() {
+    return directives;
+  }
+
+  public List<Modifier> getModifiers() {
+    return modifiers;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("\"");

@@ -29,6 +29,7 @@ import net.mailific.spf.policy.*;
 
 @SuppressWarnings("unused")
 public class SpfPolicy {
+
     public static void main(String args []) throws ParseException, PolicySyntaxException
     {
         try {
@@ -39,6 +40,7 @@ public class SpfPolicy {
             e.printStackTrace();
         }
     }
+
 }
 PARSER_END(SpfPolicy)
 

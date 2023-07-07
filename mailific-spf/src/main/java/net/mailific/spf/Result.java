@@ -26,4 +26,12 @@ public class Result {
     this.code = code;
     this.detail = detail;
   }
+
+  public ResultCode getCode() {
+    return code;
+  }
+
+  public String getDetail() {
+    return detail;
+  }
 }

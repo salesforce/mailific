@@ -22,6 +22,7 @@ import java.net.Inet4Address;
 import net.mailific.spf.Abort;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.Result;
+import net.mailific.spf.SpfImp;
 
 public class Directive {
 
@@ -50,12 +51,13 @@ public class Directive {
    *     null.
    * @throws Abort
    */
-  public Result evaluate(Inet4Address ip, String domain, String sender, LookupCount lookupCount)
+  public Result evaluate(
+      SpfImp spf, Inet4Address ip, String domain, String sender, LookupCount lookupCount)
       throws Abort {
     if (mechanism.causesLookup()) {
       lookupCount.inc();
     }
-    if (mechanism.matches(ip, domain, sender, lookupCount)) {
+    if (mechanism.matches(spf, ip, domain, sender, lookupCount)) {
       return new Result(qualifier.getResultCode(), "matched " + toString());
     }
     return null;
