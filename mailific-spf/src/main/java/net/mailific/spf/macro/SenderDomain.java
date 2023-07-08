@@ -16,34 +16,27 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.policy.PolicySyntaxException;
 
-public class Ip4 implements Mechanism {
-  private final String ip4Network;
-  private final String cidrLength;
+public class SenderDomain extends Macro {
 
-  public Ip4(String ip4Network, String cidrLength) {
-    this.ip4Network = ip4Network;
-    this.cidrLength = cidrLength;
-  }
-
-  public String toString() {
-    return "ip4:" + ip4Network + (cidrLength == null ? "" : cidrLength);
-  }
-
-  @Override
-  public boolean causesLookup() {
-    return false;
+  protected SenderDomain(int rightParts, boolean reverse, String delimiter)
+      throws PolicySyntaxException {
+    super(rightParts, reverse, delimiter);
+    if (rightParts != 0) {
+      throw new PolicySyntaxException("o macro can't have digit modifier.");
+    }
+    if (reverse) {
+      throw new PolicySyntaxException("o macro can't have reverse modifier.");
+    }
   }
 
   @Override
-  public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
+    return sender.substring(sender.lastIndexOf("@") + 1);
   }
 }

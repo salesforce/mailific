@@ -48,250 +48,250 @@ SKIP: {" "}
 
 TOKEN:
 {
-  < VERSION: "v=spf1" >
-}
+    < VERSION: "v=spf1" >
+        }
 
 TOKEN:
 {
-  <  #ALPHANUM: ( < ALPHA > | < DIGIT > ) >
- |   < #ALPHA: ["a"-"z", "A"-"Z"] >
- |  < #DIGIT: ["0"-"9"] >
-}
+    <  #ALPHANUM: ( < ALPHA > | < DIGIT > ) >
+        |   < #ALPHA: ["a"-"z", "A"-"Z"] >
+        |  < #DIGIT: ["0"-"9"] >
+        }
 
 < DSPEC > TOKEN:
 {
-	< MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" ,"c", "r", "t", "v"] >
-}
+    < MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" ,"c", "r", "t", "v"] >
+        }
 
 < DSPEC > TOKEN:
 {
-	<  TRANSFORMERS: ( ["0"-"9"] )* ( "r" )? >
-}	
+    <  TRANSFORMERS: ( ["0"-"9"] )* ( "r" )? >
+        }   
 
 < DSPEC > TOKEN:
 {
-	< DELIMITER: [".", "-", "+", ",", "/", "_", "="] >
-}
+    < DELIMITER: [".", "-", "+", ",", "/", "_", "="] >
+        }
 
 < DSPEC > TOKEN:
 {
-  <  MACRO_EXPAND: ( "%{" < MACRO_LETTER > < TRANSFORMERS > ( < DELIMITER > )* "}" ) >
-}
+    <  MACRO_EXPAND: ( "%{" < MACRO_LETTER > < TRANSFORMERS > ( < DELIMITER > )* "}" ) >
+        }
 
 < DSPEC > TOKEN:
 {
-  < MACRO_LITERAL: ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
-                    "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
-                    "_", "`", "a"-"z","{", "|", "}", "~"] >
-}
+    < MACRO_LITERAL: ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
+                      "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
+                      "_", "`", "a"-"z","{", "|", "}", "~"] >
+        }
 
 < DSPEC > TOKEN:
 {
-  < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* > : DEFAULT
-}
+    < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* > : DEFAULT
+        }
 
 
 /**
-	Choosing to be a little easier than the BNF. Will verify appropriate range in code. 
+   Choosing to be a little easier than the BNF. Will verify appropriate range in code. 
 */
 
 TOKEN:
 {
-  < CIDR_LENGTH : "/" < DIGIT > ( < DIGIT > ( < DIGIT > )? )? >
-}
+    < CIDR_LENGTH : "/" < DIGIT > ( < DIGIT > ( < DIGIT > )? )? >
+        }
 
 TOKEN:
 {
-  < QUALIFIER : ["-", "+", "?", "~"] >
-}
+    < QUALIFIER : ["-", "+", "?", "~"] >
+        }
 
 TOKEN:
 {
-  < ALL : "all" >
-}
+    < ALL : "all" >
+        }
 
 TOKEN:
 {
-	< INCLUDE : "include" >
-}
+    < INCLUDE : "include" >
+        }
 
 TOKEN:
 {
-  <  A : "a" >
-}
+    <  A : "a" >
+        }
 
 TOKEN:
 {
-  <  MX : "mx" >
-}
+    <  MX : "mx" >
+        }
 
 TOKEN:
 {
-  <  PTR : "ptr" >
-}
+    <  PTR : "ptr" >
+        }
 
 TOKEN:
 {
-	< EXISTS : "exists" >
-}
+    < EXISTS : "exists" >
+        }
 
 
 TOKEN:
 {
-  < IP4 : "ip4:" > : IPNET
-}
+    < IP4 : "ip4:" > : IPNET
+        }
 
 TOKEN:
 {
-  < IP6 : "ip6:" > : IPNET
-}
+    < IP6 : "ip6:" > : IPNET
+        }
 
 <IPNET> TOKEN:
 {
-  < QNUM : ( ["0"-"9"] | ["1"-"9"] ["0"-"9"] | "1" ["0"-"9"] ["0"-"9"]
-            | "2" ["0"-"4"] ["0"-"9"] | "25" ["0"-"5"] ) >
-}
+    < QNUM : ( ["0"-"9"] | ["1"-"9"] ["0"-"9"] | "1" ["0"-"9"] ["0"-"9"]
+               | "2" ["0"-"4"] ["0"-"9"] | "25" ["0"-"5"] ) >
+        }
 
 <IPNET> TOKEN:
 {
-  < IP4_NETWORK : < QNUM > "." < QNUM > "." < QNUM > "." < QNUM > > : DEFAULT
-}
+    < IP4_NETWORK : < QNUM > "." < QNUM > "." < QNUM > "." < QNUM > > : DEFAULT
+        }
 
 TOKEN:
 {
-  < #I6DIG : ["0"-"9","A"-"F","a"-"f"] >
-}
+    < #I6DIG : ["0"-"9","A"-"F","a"-"f"] >
+        }
 
 TOKEN:
 {
-  < #I6DIGS : < I6DIG > | < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > < I6DIG > >
-}
+    < #I6DIGS : < I6DIG > | < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > | < I6DIG > < I6DIG > < I6DIG > < I6DIG > >
+        }
 
 <IPNET> TOKEN:
 {
-  < IP6_NETWORK : "::" ( < IP4_NETWORK > )? | "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
-                  | < I6DIGS > ( ":" < I6DIGS > )+ "::" ( < IP4_NETWORK > )?
-                  | < I6DIGS > ( ":" < I6DIGS > )* "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
-  > : DEFAULT
-}
+    < IP6_NETWORK : "::" ( < IP4_NETWORK > )? | "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
+        | < I6DIGS > ( ":" < I6DIGS > )+ "::" ( < IP4_NETWORK > )?
+        | < I6DIGS > ( ":" < I6DIGS > )* "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
+        > : DEFAULT
+        }
 
 TOKEN:
 {
-        < COLON : ":" > : DSPEC
-}
+    < COLON : ":" > : DSPEC
+        }
 
 TOKEN:
 {
-  < REDIRECT : "redirect=" > : DSPEC
-}
+    < REDIRECT : "redirect=" > : DSPEC
+        }
 
 TOKEN:
 {
-  < EXPLANATION : "exp=" > : DSPEC
-}
+    < EXPLANATION : "exp=" > : DSPEC
+        }
 
 TOKEN:
 {
-  < UNKNOWN_MOD : < ALPHA > ( ["a"-"z","A"-"Z","0"-"9","-","_","."] )* "=" > : DSPEC
-}
+    < UNKNOWN_MOD : < ALPHA > ( ["a"-"z","A"-"Z","0"-"9","-","_","."] )* "=" > : DSPEC
+        }
 
 
 Mechanism mechanism() throws PolicySyntaxException :
 {
-	Token t = null;
-	String dspec = null;
-	String cidr = null;
+    Token t = null;
+    String dspec = null;
+    String cidr = null;
 }
 {
-  (    <  ALL >
-    {
-      return new All();
-    }
-  |
-    ( < INCLUDE > < COLON > t = < MACRO_STRING >
+    (    <  ALL >
+     {
+         return new All();
+     }
+     |
+     ( < INCLUDE > < COLON > t = < MACRO_STRING >
+       {
+           return new Include(t.image);
+       }
+       )
+     |
+     (      < A > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
       {
-		return new Include(t.image);
+          return new A(dspec, cidr);
       }
-    )
-  |
-    (      < A > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      )
+     |
+     (      < MX > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
       {
-        return new A(dspec, cidr);
+          return new MX(dspec, cidr);
       }
-    )
-  |
-    (      < MX > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      )
+     |
+     (      < PTR > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )?
       {
-        return new MX(dspec, cidr);
+          return new Ptr(dspec);
       }
-    )
-  |
-    (      < PTR > ( < COLON > t = < MACRO_STRING > { dspec = t.image; } )?
+      )
+     |
+     (      < IP4 > ( t = < IP4_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
       {
-        return new Ptr(dspec);
+          return new Ip4(dspec, cidr);
       }
-    )
-  |
-    (      < IP4 > ( t = < IP4_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
+      )
+     |
+     (      < IP6 > ( t = < IP6_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
       {
-        return new Ip4(dspec, cidr);
+          return new Ip6(dspec, cidr);
       }
-    )
-  |
-    (      < IP6 > ( t = < IP6_NETWORK > { dspec = t.image; } )? ( t = < CIDR_LENGTH > {  cidr = t.image; } )?
-      {
-        return new Ip6(dspec, cidr);
-      }
-    )
-  |
-    ( < EXISTS > < COLON > t = < MACRO_STRING >
-      {
-		return new Exists(t.image);
-      }
-    )
-  )   
-}
+      )
+     |
+     ( < EXISTS > < COLON > t = < MACRO_STRING >
+       {
+           return new Exists(t.image);
+       }
+       )
+     )   
+        }
 
 Directive directive() throws PolicySyntaxException :
 {
-  Token t = null;
-  Qualifier qualifier = null;
-  Mechanism mechanism = null;
+    Token t = null;
+    Qualifier qualifier = null;
+    Mechanism mechanism = null;
 }
 {
-  (
-    t = < QUALIFIER >
-	{
-	  qualifier = Qualifier.fromSymbol(t.image);
-	}
-   )?
-    mechanism = mechanism()
-	{
-	  return new Directive(qualifier, mechanism);	
-	}
+    (
+     t = < QUALIFIER >
+     {
+         qualifier = Qualifier.fromSymbol(t.image);
+     }
+     )?
+        mechanism = mechanism()
+        {
+            return new Directive(qualifier, mechanism);   
+        }
 }
 
 Modifier modifier():
 {
-  Token t = null;
-  String name = null;
-  String spec = null;
+    Token t = null;
+    String name = null;
+    String spec = null;
 }
 {
-  ( < REDIRECT > t = < MACRO_STRING >
-    {
-      return new Redirect(t.image);
-    }
-  |
-    ( < EXPLANATION > t = < MACRO_STRING >
+    ( < REDIRECT > t = < MACRO_STRING >
       {
-		return new Explanation(t.image);
+          return new Redirect(t.image);
       }
-    )
-  |
-    ( t = < UNKNOWN_MOD > { name = t.image; } t = < MACRO_STRING > { spec = t.image; }
+      |
+      ( < EXPLANATION > t = < MACRO_STRING >
+        {
+            return new Explanation(t.image);
+        }
+        )
+      |
+      ( t = < UNKNOWN_MOD > { name = t.image; } t = < MACRO_STRING > { spec = t.image; }
       {
-		return new UnknownModifier(name, spec);
+        return new UnknownModifier(name, spec);
       }
     )
   )
@@ -300,21 +300,21 @@ Modifier modifier():
 public Policy policy() throws PolicySyntaxException :
 {
     Token t = null;
-	String version;
-	Directive directive = null;
-        Modifier modifier = null;
-	ArrayList<Directive> directives = new ArrayList<>();
-	ArrayList<Modifier> modifiers = new ArrayList<>();
-  }
+    String version;
+    Directive directive = null;
+    Modifier modifier = null;
+    ArrayList<Directive> directives = new ArrayList<>();
+    ArrayList<Modifier> modifiers = new ArrayList<>();
+}
 {
- 	     t = <VERSION>
- 	     { version = t.image; }
- 	     (
- 	       directive = directive() { directives.add(directive); }
+    t = <VERSION>
+         { version = t.image; }
+         (
+           directive = directive() { directives.add(directive); }
                | modifier = modifier() { modifiers.add(modifier); }
- 	     )*
- 	     < EOF >
- 	 {
- 	   return new Policy(version, directives, modifiers);
- 	 } 
+         )*
+         < EOF >
+     {
+       return new Policy(version, directives, modifiers);
+     } 
 }

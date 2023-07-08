@@ -18,9 +18,9 @@
 
 package net.mailific.spf;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 
 public interface Spf {
 
-  Result checkHost(Inet4Address ip, String domain, String sender);
+  Result checkHost(InetAddress ip, String domain, String sender);
 }

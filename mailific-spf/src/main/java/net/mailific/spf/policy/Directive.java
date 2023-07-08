@@ -18,11 +18,11 @@
 
 package net.mailific.spf.policy;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.Result;
-import net.mailific.spf.SpfImp;
+import net.mailific.spf.SpfUtil;
 
 public class Directive {
 
@@ -52,7 +52,7 @@ public class Directive {
    * @throws Abort
    */
   public Result evaluate(
-      SpfImp spf, Inet4Address ip, String domain, String sender, LookupCount lookupCount)
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
       throws Abort {
     if (mechanism.causesLookup()) {
       lookupCount.inc();

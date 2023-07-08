@@ -16,26 +16,25 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf.macro;
 
-import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
-import net.mailific.spf.SpfUtil;
+import net.mailific.spf.policy.PolicySyntaxException;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class All implements Mechanism {
+public class MacroTest {
 
-  public String toString() {
-    return "all";
-  }
-
-  @Override
-  public boolean causesLookup() {
-    return false;
-  }
-
-  @Override
-  public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
-    return true;
+  @Test
+  public void testL_digits() {
+    Assert.assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          Macro.macro("l", 1, false, null);
+        });
+    Assert.assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          Macro.macro("l", 2, false, null);
+        });
   }
 }

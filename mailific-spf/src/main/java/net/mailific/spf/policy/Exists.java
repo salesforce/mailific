@@ -18,9 +18,9 @@
 
 package net.mailific.spf.policy;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import net.mailific.spf.LookupCount;
-import net.mailific.spf.Spf;
+import net.mailific.spf.SpfUtil;
 
 public class Exists implements Mechanism {
 
@@ -41,7 +41,7 @@ public class Exists implements Mechanism {
 
   @Override
   public boolean matches(
-      Spf spf, Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'matches'");
   }

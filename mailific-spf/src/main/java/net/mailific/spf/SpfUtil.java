@@ -18,12 +18,11 @@
 
 package net.mailific.spf;
 
-import java.net.Inet4Address;
 import net.mailific.spf.dns.NameResolver;
 
 public interface SpfUtil extends Spf {
 
-  String expand(Inet4Address ip, String domain, String sender);
+  // String expand(InetAddress ip, String domain, String sender);
 
   NameResolver getNameResolver();
 }

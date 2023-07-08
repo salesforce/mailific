@@ -19,7 +19,7 @@
 package net.mailific.spf;
 
 import java.io.ByteArrayInputStream;
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -42,11 +42,11 @@ public class SpfImp implements SpfUtil {
   }
 
   @Override
-  public Result checkHost(Inet4Address ip, String domain, String sender) {
+  public Result checkHost(InetAddress ip, String domain, String sender) {
     return checkHost(ip, domain, sender, new LookupCount(lookupLimit));
   }
 
-  private Result checkHost(Inet4Address ip, String domain, String sender, LookupCount lookupCount) {
+  private Result checkHost(InetAddress ip, String domain, String sender, LookupCount lookupCount) {
     try {
       verifyDomain(domain);
       String spfRecord = lookupSpfRecord(domain);
@@ -118,11 +118,6 @@ public class SpfImp implements SpfUtil {
     if (!DOMAIN_CHARS_PATTERN.matcher(domain).matches()) {
       throw new Abort(ResultCode.None, "Illegal domain characters: " + domain);
     }
-  }
-
-  @Override
-  public String expand(Inet4Address ip, String domain, String sender) {
-    throw new UnsupportedOperationException("Unimplemented method 'expand'");
   }
 
   @Override

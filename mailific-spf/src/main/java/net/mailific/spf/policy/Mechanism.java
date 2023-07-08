@@ -18,13 +18,14 @@
 
 package net.mailific.spf.policy;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import net.mailific.spf.LookupCount;
-import net.mailific.spf.Spf;
+import net.mailific.spf.SpfUtil;
 
 public interface Mechanism {
 
   boolean causesLookup();
 
-  boolean matches(Spf spf, Inet4Address ip, String domain, String sender, LookupCount lookupCount);
+  boolean matches(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount);
 }
