@@ -19,6 +19,8 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
@@ -58,24 +60,50 @@ public abstract class Macro {
     return delimiter;
   }
 
-  public String modify(String s, int digits, boolean reverse, String delimiter) {
-    if (reverse || digits != 0 || delimiter != null) {
-      if (delimiter == null) {
-        delimiter = "[.]";
+  public String patternFromDelimiter(String delimiter) {
+    String pattern = "[.]";
+    if (delimiter != null && !delimiter.isBlank()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append('[');
+      if (delimiter.contains("-")) {
+        // Move hyphen to the beginning, so it's not interpreted as a range
+        sb.append('-');
+        sb.append(delimiter.replace("-", ""));
       } else {
-        // The spec allows repeats, so strip down to one copy of each character
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        for (int i = 0; i < 7; i++) {
-          char c = "-.+,/_=".charAt(i);
-          if (delimiter.indexOf(c) > -1) {
-            sb.append(c);
-          }
-        }
-        sb.append(']');
-        delimiter = sb.toString();
+        sb.append(delimiter);
       }
+      sb.append(']');
+      pattern = sb.toString();
     }
-    return null;
+    return pattern;
+  }
+
+  public String transform(String s, int rightParts, boolean reverse, String delimiter) {
+    if (reverse || rightParts != 0 || delimiter != null) {
+
+      String pattern = patternFromDelimiter(delimiter);
+
+      String[] splits = s.split(pattern, -1);
+      if (splits.length == 1) {
+        return splits[0];
+      }
+      String[] parts = splits;
+
+      int count = rightParts > 0 ? Math.min(splits.length, rightParts) : splits.length;
+      if (reverse) {
+        parts = new String[count];
+        for (int i = 0, j = count - 1; i < count; i++, j--) {
+          parts[i] = splits[j];
+        }
+      } else if (count < splits.length) {
+        parts = new String[count];
+        for (int i = 0, j = splits.length - count; i < count; i++, j++) {
+          parts[i] = splits[j];
+        }
+      }
+
+      return Arrays.stream(parts).collect(Collectors.joining("."));
+    }
+    return s;
   }
 }
