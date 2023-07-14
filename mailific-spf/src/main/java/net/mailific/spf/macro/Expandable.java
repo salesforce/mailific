@@ -16,21 +16,11 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf.macro;
 
-import static org.junit.Assert.assertThrows;
+import java.net.InetAddress;
+import net.mailific.spf.SpfUtil;
 
-import net.mailific.spf.macro.MacroString;
-import org.junit.Test;
-
-public class IncludeTest {
-
-  @Test
-  public void nullDomain() {
-    assertThrows(
-        PolicySyntaxException.class,
-        () -> {
-          new Include(new MacroString());
-        });
-  }
+public interface Expandable {
+  String expand(SpfUtil spf, InetAddress ip, String domain, String sender);
 }

@@ -21,11 +21,12 @@ package net.mailific.spf.policy;
 import java.net.InetAddress;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.macro.MacroString;
 
 public class Ptr implements Mechanism {
-  private final String domainSpec;
+  private final MacroString domainSpec;
 
-  public Ptr(String domainSpec) {
+  public Ptr(MacroString domainSpec) {
     this.domainSpec = domainSpec;
   }
 

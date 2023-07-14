@@ -21,13 +21,14 @@ package net.mailific.spf.policy;
 import java.net.InetAddress;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.macro.MacroString;
 
 public class Include implements Mechanism {
 
-  private final String domainSpec;
+  private final MacroString domainSpec;
 
-  public Include(String domainSpec) throws PolicySyntaxException {
-    if (domainSpec == null || domainSpec.isBlank()) {
+  public Include(MacroString domainSpec) throws PolicySyntaxException {
+    if (domainSpec == null || domainSpec.isEmpty()) {
       throw new PolicySyntaxException("Include domainSpec can't be empty.");
     }
     this.domainSpec = domainSpec;

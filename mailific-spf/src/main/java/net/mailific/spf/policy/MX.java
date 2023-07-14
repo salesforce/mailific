@@ -21,12 +21,13 @@ package net.mailific.spf.policy;
 import java.net.InetAddress;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.macro.MacroString;
 
 public class MX implements Mechanism {
-  private final String domainSpec;
+  private final MacroString domainSpec;
   private final String cidrLength;
 
-  public MX(String domainSpec, String cidrLength) {
+  public MX(MacroString domainSpec, String cidrLength) {
     this.domainSpec = domainSpec;
     this.cidrLength = cidrLength;
   }

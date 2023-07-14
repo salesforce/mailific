@@ -19,25 +19,48 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import net.mailific.spf.SpfUtil;
 
-public class Sender extends Macro {
+public class MacroString implements Expandable {
 
-  public Sender(int rightParts, boolean reverse, String delimiter) {
-    super(rightParts, reverse, delimiter);
+  private final List<Expandable> tokens;
+
+ public MacroString() {
+    tokens = new ArrayList<>();
+ }  
+
+ public MacroString(List<Expandable> tokens) {
+    this.tokens = tokens;
+ }
+ 
+  public void add(Expandable e) {
+    tokens.add(e);
+  }
+
+  public boolean isEmpty() {
+    return tokens.isEmpty();
   }
 
   @Override
   public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
-    return transform(sender, getRightParts(), isReverse(), getDelimiter());
+    StringBuilder sb = new StringBuilder();
+    tokens.stream()
+        .forEach(
+            (token) -> {
+              sb.append(token.expand(spf, ip, domain, sender));
+            });
+    return sb.toString();
   }
 
   @Override
   public String toString() {
-    return "%{s"
-        + (getRightParts() > 0 ? getRightParts() : "")
-        + (isReverse() ? "r" : "")
-        + (getDelimiter() == null ? "" : getDelimiter())
-        + "}";
-  }
+    StringBuilder sb = new StringBuilder();
+    tokens.stream()
+        .forEach(
+            (token) -> {
+              sb.append(token.toString());
+            });
+    return sb.toString();  public boolean isDomainSpec() {
 }

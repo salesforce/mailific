@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
-public abstract class Macro {
+public abstract class Macro implements Expandable {
 
   private final int rightParts;
   private final boolean reverse;
@@ -105,5 +105,16 @@ public abstract class Macro {
       return Arrays.stream(parts).collect(Collectors.joining("."));
     }
     return s;
+  }
+
+  @Override
+  public String toString() {
+    return "Macro [rightParts="
+        + rightParts
+        + ", reverse="
+        + reverse
+        + ", delimiter="
+        + delimiter
+        + "]";
   }
 }
