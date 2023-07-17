@@ -22,8 +22,25 @@ import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.dns.NameNotFound;
+import net.mailific.spf.dns.NameResolutionException;
 
-public interface Expandable {
-  String expand(SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
-      throws Abort;
+public class NameOfIp extends Macro {
+
+  public NameOfIp(int rightParts, boolean reverse, String delimiter) {
+    super(rightParts, reverse, delimiter);
+  }
+
+  @Override
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
+      throws Abort {
+    lookupCount.inc();
+    try {
+      String host = spf.validateIp(ip, domain);
+      return transform(host, getRightParts(), isReverse(), getDelimiter());
+    } catch (NameResolutionException | NameNotFound e) {
+      return "unknown";
+    }
+  }
 }

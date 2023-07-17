@@ -28,4 +28,9 @@ public interface NameResolver {
   Inet4Address resolveARecords(String name) throws NameResolutionException, NameNotFound;
 
   Inet6Address resolveAAAARecords(String name) throws NameResolutionException, NameNotFound;
+
+  /**
+   * @param name The name of the PTR record (e.g. 4.3.2.1.in-addr.arpa)
+   */
+  String[] resolvePtrRecords(String name) throws NameResolutionException, NameNotFound;
 }

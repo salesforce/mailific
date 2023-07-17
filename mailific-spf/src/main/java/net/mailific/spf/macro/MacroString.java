@@ -21,20 +21,14 @@ package net.mailific.spf.macro;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import net.mailific.spf.Abort;
+import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
 public class MacroString implements Expandable {
 
-  private final List<Expandable> tokens;
+  private final List<Expandable> tokens = new ArrayList<>();
 
- public MacroString() {
-    tokens = new ArrayList<>();
- }  
-
- public MacroString(List<Expandable> tokens) {
-    this.tokens = tokens;
- }
- 
   public void add(Expandable e) {
     tokens.add(e);
   }
@@ -44,13 +38,13 @@ public class MacroString implements Expandable {
   }
 
   @Override
-  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
+      throws Abort {
     StringBuilder sb = new StringBuilder();
-    tokens.stream()
-        .forEach(
-            (token) -> {
-              sb.append(token.expand(spf, ip, domain, sender));
-            });
+    for (Expandable token : tokens) {
+      sb.append(token.expand(spf, ip, domain, sender, lookupCount));
+    }
     return sb.toString();
   }
 
@@ -62,5 +56,6 @@ public class MacroString implements Expandable {
             (token) -> {
               sb.append(token.toString());
             });
-    return sb.toString();  public boolean isDomainSpec() {
+    return sb.toString();
+  }
 }

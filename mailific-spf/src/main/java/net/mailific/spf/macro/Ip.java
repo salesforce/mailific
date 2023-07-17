@@ -19,11 +19,20 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.Abort;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.policy.PolicySyntaxException;
 
-public interface Expandable {
-  String expand(SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
-      throws Abort;
+public class Ip extends Macro {
+
+  protected Ip(int rightParts, boolean reverse, String delimiter) throws PolicySyntaxException {
+    super(rightParts, reverse, delimiter);
+  }
+
+  @Override
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+    String dotted = spf.dotFormatIp(ip);
+    return transform(dotted, getRightParts(), isReverse(), getDelimiter());
+  }
 }

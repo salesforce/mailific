@@ -19,11 +19,25 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.Abort;
 import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
-public interface Expandable {
-  String expand(SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
-      throws Abort;
+public class Escape extends Macro {
+
+  private final String value;
+
+  public Escape(String value) {
+    super(0, false, null);
+    this.value = value;
+  }
+
+  @Override
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+    return value;
+  }
+
+  public String toString() {
+    return "%" + value;
+  }
 }

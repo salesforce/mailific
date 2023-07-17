@@ -18,6 +18,9 @@
 
 package net.mailific.spf;
 
+import java.net.InetAddress;
+import net.mailific.spf.dns.NameNotFound;
+import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.dns.NameResolver;
 
 public interface SpfUtil extends Spf {
@@ -25,4 +28,10 @@ public interface SpfUtil extends Spf {
   // String expand(InetAddress ip, String domain, String sender);
 
   NameResolver getNameResolver();
+
+  String dotFormatIp(InetAddress ip);
+
+  // String ptrName(InetAddress ip);
+
+  String validateIp(InetAddress ip, String domain) throws NameResolutionException, NameNotFound;
 }

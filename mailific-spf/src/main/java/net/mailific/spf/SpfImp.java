@@ -19,6 +19,7 @@
 package net.mailific.spf;
 
 import java.io.ByteArrayInputStream;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
@@ -33,6 +34,10 @@ import net.mailific.spf.policy.Policy;
 import net.mailific.spf.policy.PolicySyntaxException;
 
 public class SpfImp implements SpfUtil {
+
+  private static final char[] HEX = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+  };
 
   private int lookupLimit = 10;
   private NameResolver resolver;
@@ -123,5 +128,60 @@ public class SpfImp implements SpfUtil {
   @Override
   public NameResolver getNameResolver() {
     return resolver;
+  }
+
+  @Override
+  public String dotFormatIp(InetAddress ip) {
+    if (ip instanceof Inet4Address) {
+      return ip.getHostAddress();
+    }
+    byte[] bytes = ip.getAddress();
+    StringBuilder sb = new StringBuilder(62);
+    sb.append(HEX[(bytes[0] & 0xf0) >> 4]).append('.').append(HEX[bytes[0] & 0xF]);
+    for (int i = 1; i < bytes.length; i++) {
+      sb.append('.').append(HEX[(bytes[i] & 0xf0) >> 4]).append('.').append(HEX[bytes[i] & 0xF]);
+    }
+    return sb.toString();
+  }
+
+  // @Override
+  public String ptrName(InetAddress ip) {
+    StringBuilder sb = new StringBuilder();
+    String[] bites = dotFormatIp(ip).split("[.]");
+    for (int i = bites.length - 1; i >= 0; i--) {
+      sb.append(bites[i]).append('.');
+    }
+    sb.append(ip instanceof Inet4Address ? "in-addr.arpa." : "ip6.arpa.");
+    return sb.toString();
+  }
+
+  /**
+   * @param ip
+   * @param domain
+   * @return null if not validated
+   * @throws NameNotFound
+   * @throws NameResolutionException
+   */
+  @Override
+  public String validateIp(InetAddress ip, String domain)
+      throws NameResolutionException, NameNotFound {
+    String ptrName = ptrName(ip);
+    String[] results = getNameResolver().resolvePtrRecords(ptrName);
+    if (results == null || results.length == 0) {
+      return null;
+    }
+    String candidate = null;
+    for (String result : results) {
+      if (result.equalsIgnoreCase(domain)) {
+        return result;
+      }
+      if (candidate == null && result.endsWith(domain)) {
+        candidate = result;
+      }
+    }
+    if (candidate == null) {
+      candidate = results[0];
+    }
+    return candidate;
   }
 }

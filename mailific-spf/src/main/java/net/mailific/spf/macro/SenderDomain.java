@@ -19,6 +19,7 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
@@ -27,16 +28,12 @@ public class SenderDomain extends Macro {
   protected SenderDomain(int rightParts, boolean reverse, String delimiter)
       throws PolicySyntaxException {
     super(rightParts, reverse, delimiter);
-    if (rightParts != 0) {
-      throw new PolicySyntaxException("o macro can't have digit modifier.");
-    }
-    if (reverse) {
-      throw new PolicySyntaxException("o macro can't have reverse modifier.");
-    }
   }
 
   @Override
-  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
-    return sender.substring(sender.lastIndexOf("@") + 1);
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+    String d = sender.substring(sender.lastIndexOf("@") + 1);
+    return transform(d, getRightParts(), isReverse(), getDelimiter());
   }
 }

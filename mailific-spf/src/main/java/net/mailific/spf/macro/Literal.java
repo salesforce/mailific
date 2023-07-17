@@ -19,6 +19,7 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
 public class Literal implements Expandable {
@@ -30,7 +31,8 @@ public class Literal implements Expandable {
   }
 
   @Override
-  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
     return value;
   }
 

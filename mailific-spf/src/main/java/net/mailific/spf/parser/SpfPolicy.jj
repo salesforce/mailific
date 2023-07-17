@@ -19,8 +19,12 @@
  */
 options
 {
+    /**
     debug_parser = true;
+    debug_lookahead = true;
     debug_token_manager = true;
+    */
+
 
     static = false;
     output_directory = "../../../../../../../target/generated-sources/javacc/net/mailific/spf/parser";
@@ -65,12 +69,15 @@ TOKEN:
         }
 
 /**
-TOKEN:
+ * I've partially collapsed toplabel and domain-end
+ */
+<DSPEC> TOKEN:
 {
-  < TOPLABEL: ( ( < ALPHANUM > )* < ALPHA > ( < ALPHANUM > )* )
-              | ( < ALPHANUM > "-" ( < ALPHANUM > | "-" )* < ALPHANUM > ) >
+    < TOPLABEL: ( "." ( ( ( < ALPHANUM > )* < ALPHA > ( < ALPHANUM > )* )
+                        | ( < ALPHANUM > "-" ( < ALPHANUM > | "-" )* < ALPHANUM > ) ) )+
+         (".")? >
 }
-*/
+
 
 <MEX> TOKEN:
 {
@@ -96,27 +103,15 @@ TOKEN:
 
 <DSPEC> TOKEN: { < MACRO_EXPAND_START : "%{" > : MEX }
 
+<DSPEC> TOKEN: { < MACRO_ESCAPED : "%" ["%","_","-"] > }
+
 
 <DSPEC> TOKEN:
 {
-    < MACRO_LITERAL: ( ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
+    < MACRO_LITERAL: ( ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", "/",
                       "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
-                        "_", "`", "a"-"z","{", "|", "}", "~"] )+ >
+                        "_", "`", "a"-"z","{", "|", "}", "~"] )+ | "." >
         }
-
-/**
- * TODO put macro expand back in
-< DSPEC > TOKEN:
-{
-    < MACRO_STRING: ( < MACRO_EXPAND > | < MACRO_LITERAL > )* > : DEFAULT
-        }
-*/
-
-< DSPEC > TOKEN:
-{
-    < MACRO_STRING: ( < MACRO_LITERAL > )* > : DEFAULT
-        }
-
 
 
 
@@ -243,13 +238,11 @@ MacroString macroString() throws PolicySyntaxException :
      {
          ms.add(new Literal(t.image));
      }
-     /**
      |
      t = < TOPLABEL >
      {
          ms.add(new Literal(t.image));
      }
-     */
      )*
     {
         return ms;
@@ -268,13 +261,38 @@ MacroString macroString() throws PolicySyntaxException :
 */
 MacroString domainSpec() throws PolicySyntaxException :
 {
-    MacroString ms = null;
+    Token t = null;
+    MacroString ms = new MacroString();
+    boolean domainEnd = false;
+    Macro macro = null;
 }
 {
-    ms = macroString()
+    (
+     macro = macro()
+     {
+         domainEnd = true;
+         ms.add(macro);
+     }
+     |
+     t = < MACRO_LITERAL >
+     {
+         domainEnd = false;
+         ms.add(new Literal(t.image));
+     }
+     |
+     t = < TOPLABEL >
+     {
+         domainEnd = true;
+         ms.add(new Literal(t.image));
+     }
+     )*
     {
-       return ms;
+        if (! domainEnd) {
+            throw new PolicySyntaxException("Domain-spec can't end in macro literal.");
+        }
+        return ms;
     }
+
 }
 
 
@@ -287,7 +305,13 @@ Macro macro() throws PolicySyntaxException :
     String delimiter = null;
 }
 {
-    ( < MACRO_EXPAND_START >
+    (
+     t = < MACRO_ESCAPED >
+     {
+         type = t.image.substring(1);
+     }
+     |
+      < MACRO_EXPAND_START >
       t = <MACRO_LETTER> { type = t.image; }
       ( t = <DIGITS> { digits = Integer.parseInt(t.image); } )?
       ( <REVERSE> { reverse = true; } )?
@@ -387,27 +411,26 @@ Directive directive() throws PolicySyntaxException :
         }
 }
 
-Modifier modifier():
+Modifier modifier() throws PolicySyntaxException :
 {
     Token t = null;
-    String name = null;
-    String spec = null;
+    MacroString ms = null;
 }
 {
-    ( < REDIRECT > t = < MACRO_STRING >
+    ( < REDIRECT > ms = domainSpec()
       {
-          return new Redirect(t.image);
+          return new Redirect(ms);
       }
       |
-      ( < EXPLANATION > t = < MACRO_STRING >
+      ( < EXPLANATION > ms = domainSpec()
         {
-            return new Explanation(t.image);
+            return new Explanation(ms);
         }
         )
       |
-      ( t = < UNKNOWN_MOD > { name = t.image; } t = < MACRO_STRING > { spec = t.image; }
+      ( t = < UNKNOWN_MOD >  ms = macroString()
       {
-        return new UnknownModifier(name, spec);
+        return new UnknownModifier(t.image, ms);
       }
     )
   )

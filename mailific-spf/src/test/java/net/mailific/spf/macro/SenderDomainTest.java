@@ -19,6 +19,7 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 import org.junit.After;
@@ -32,6 +33,7 @@ public class SenderDomainTest {
 
   private AutoCloseable mocks;
   @Mock SpfUtil spf;
+  LookupCount lookupCount = new LookupCount(10);
 
   InetAddress ip;
 
@@ -52,6 +54,6 @@ public class SenderDomainTest {
   public void testExpand() throws PolicySyntaxException {
     it = new SenderDomain(0, false, null);
 
-    Assert.assertEquals("bar.com", it.expand(spf, ip, "baz.com", "foo@bar.com"));
+    Assert.assertEquals("bar.com", it.expand(spf, ip, "baz.com", "foo@bar.com", lookupCount));
   }
 }

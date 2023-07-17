@@ -18,11 +18,13 @@
 
 package net.mailific.spf.policy;
 
+import net.mailific.spf.macro.MacroString;
+
 public class Explanation extends Modifier {
 
-  private final String domainSpec;
+  private final MacroString domainSpec;
 
-  public Explanation(String domainSpec) {
+  public Explanation(MacroString domainSpec) {
     this.domainSpec = domainSpec;
   }
 

@@ -19,6 +19,7 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
+import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
@@ -29,7 +30,8 @@ public class Domain extends Macro {
   }
 
   @Override
-  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender) {
-    return sender.substring(sender.lastIndexOf("@") + 1);
+  public String expand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+    return transform(domain, getRightParts(), isReverse(), getDelimiter());
   }
 }

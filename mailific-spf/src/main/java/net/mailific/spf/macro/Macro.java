@@ -18,10 +18,8 @@
 
 package net.mailific.spf.macro;
 
-import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
 public abstract class Macro implements Expandable {
@@ -35,6 +33,14 @@ public abstract class Macro implements Expandable {
     switch (type) {
       case "s":
         return new Sender(rightParts, reverse, delimiter);
+      case "d":
+        return new Domain(rightParts, reverse, delimiter);
+      case "i":
+        return new Ip(rightParts, reverse, delimiter);
+      case "%":
+      case "_":
+      case "-":
+        return new Escape(type);
       default:
         throw new PolicySyntaxException("Not a macro type: " + type);
     }
@@ -53,8 +59,6 @@ public abstract class Macro implements Expandable {
   public boolean isReverse() {
     return reverse;
   }
-
-  public abstract String expand(SpfUtil spf, InetAddress ip, String domain, String sender);
 
   public String getDelimiter() {
     return delimiter;

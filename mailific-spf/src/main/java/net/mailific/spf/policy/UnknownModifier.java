@@ -18,12 +18,14 @@
 
 package net.mailific.spf.policy;
 
+import net.mailific.spf.macro.MacroString;
+
 public class UnknownModifier extends Modifier {
 
   private final String name;
-  private final String macroString;
+  private final MacroString macroString;
 
-  public UnknownModifier(String name, String macroString) {
+  public UnknownModifier(String name, MacroString macroString) {
     this.name = name;
     this.macroString = macroString;
   }
