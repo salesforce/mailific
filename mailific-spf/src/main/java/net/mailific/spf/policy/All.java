@@ -19,7 +19,6 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
 public class All implements Mechanism {
@@ -35,7 +34,7 @@ public class All implements Mechanism {
 
   @Override
   public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     return true;
   }
 }

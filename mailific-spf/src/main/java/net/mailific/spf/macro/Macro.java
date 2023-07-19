@@ -27,16 +27,29 @@ public abstract class Macro implements Expandable {
   private final int rightParts;
   private final boolean reverse;
   private final String delimiter;
+  private final boolean escape;
 
   public static Macro macro(String type, int rightParts, boolean reverse, String delimiter)
       throws PolicySyntaxException {
-    switch (type) {
+    String lcType = type.toLowerCase();
+    boolean escape = !(type.equals(lcType));
+    switch (lcType) {
       case "s":
-        return new Sender(rightParts, reverse, delimiter);
+        return new Sender(rightParts, reverse, delimiter, escape);
+      case "l":
+        return new SenderLocal(rightParts, reverse, delimiter, escape);
+      case "o":
+        return new SenderDomain(rightParts, reverse, delimiter, escape);
       case "d":
-        return new Domain(rightParts, reverse, delimiter);
+        return new Domain(rightParts, reverse, delimiter, escape);
       case "i":
-        return new Ip(rightParts, reverse, delimiter);
+        return new Ip(rightParts, reverse, delimiter, escape);
+      case "p":
+        return new NameOfIp(rightParts, reverse, delimiter, escape);
+      case "h":
+        return new Helo(rightParts, reverse, delimiter, escape);
+      case "r":
+        return new Receiver(rightParts, reverse, delimiter, escape);
       case "%":
       case "_":
       case "-":
@@ -46,10 +59,11 @@ public abstract class Macro implements Expandable {
     }
   }
 
-  protected Macro(int rightParts, boolean reverse, String delimiter) {
+  protected Macro(int rightParts, boolean reverse, String delimiter, boolean escape) {
     this.rightParts = rightParts;
     this.reverse = reverse;
     this.delimiter = delimiter;
+    this.escape = escape;
   }
 
   public int getRightParts() {

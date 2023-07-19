@@ -20,8 +20,6 @@ package net.mailific.spf.macro;
 
 import static org.junit.Assert.assertEquals;
 
-import net.mailific.spf.policy.PolicySyntaxException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,20 +30,6 @@ public class MacroTest {
   @Before
   public void setup() throws Exception {
     it = Macro.macro("s", 0, false, null);
-  }
-
-  @Test
-  public void testL_digits() {
-    Assert.assertThrows(
-        PolicySyntaxException.class,
-        () -> {
-          Macro.macro("l", 1, false, null);
-        });
-    Assert.assertThrows(
-        PolicySyntaxException.class,
-        () -> {
-          Macro.macro("l", 2, false, null);
-        });
   }
 
   @Test

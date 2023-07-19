@@ -18,18 +18,8 @@
 
 package net.mailific.spf;
 
-public class LookupCount {
-  private int used;
-  private final int max;
+import net.mailific.spf.dns.NameResolver;
 
-  public LookupCount(int max) {
-    this.max = max;
-  }
-
-  public int inc() throws Abort {
-    if (++used > max) {
-      throw new Abort(ResultCode.Permerror, "Maximum total DNS lookups exceeded.");
-    }
-    return max - used;
-  }
+public interface SpfUtilFactory {
+  SpfUtil create(NameResolver resolver, int lookupLimt);
 }

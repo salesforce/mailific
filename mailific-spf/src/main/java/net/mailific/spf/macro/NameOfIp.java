@@ -20,22 +20,19 @@ package net.mailific.spf.macro;
 
 import java.net.InetAddress;
 import net.mailific.spf.Abort;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolutionException;
 
 public class NameOfIp extends Macro {
 
-  public NameOfIp(int rightParts, boolean reverse, String delimiter) {
-    super(rightParts, reverse, delimiter);
+  public NameOfIp(int rightParts, boolean reverse, String delimiter, boolean escape) {
+    super(rightParts, reverse, delimiter, escape);
   }
 
   @Override
-  public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
+  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam)
       throws Abort {
-    lookupCount.inc();
     try {
       String host = spf.validateIp(ip, domain);
       return transform(host, getRightParts(), isReverse(), getDelimiter());

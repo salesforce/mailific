@@ -33,5 +33,8 @@ public interface SpfUtil extends Spf {
 
   // String ptrName(InetAddress ip);
 
-  String validateIp(InetAddress ip, String domain) throws NameResolutionException, NameNotFound;
+  String validateIp(InetAddress ip, String domain)
+      throws NameResolutionException, NameNotFound, Abort;
+
+  public int incLookupCounter() throws Abort;
 }

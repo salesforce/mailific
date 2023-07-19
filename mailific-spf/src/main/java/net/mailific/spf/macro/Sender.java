@@ -19,18 +19,17 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
 public class Sender extends Macro {
 
-  public Sender(int rightParts, boolean reverse, String delimiter) {
-    super(rightParts, reverse, delimiter);
+  public Sender(int rightParts, boolean reverse, String delimiter, boolean escape) {
+    super(rightParts, reverse, delimiter, escape);
   }
 
   @Override
   public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     return transform(sender, getRightParts(), isReverse(), getDelimiter());
   }
 

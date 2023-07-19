@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import net.mailific.spf.Abort;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 
 public class MacroString implements Expandable {
@@ -38,12 +37,11 @@ public class MacroString implements Expandable {
   }
 
   @Override
-  public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount)
+  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam)
       throws Abort {
     StringBuilder sb = new StringBuilder();
     for (Expandable token : tokens) {
-      sb.append(token.expand(spf, ip, domain, sender, lookupCount));
+      sb.append(token.expand(spf, ip, domain, sender, ehloParam));
     }
     return sb.toString();
   }

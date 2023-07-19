@@ -16,33 +16,29 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.policy;
+package net.mailific.spf.macro;
 
 import java.net.InetAddress;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.macro.MacroString;
 
-public class Exists implements Mechanism {
+public class Receiver extends Macro {
 
-  private final MacroString domainSpec;
-
-  public Exists(MacroString domainSpec) {
-    this.domainSpec = domainSpec;
-  }
-
-  public String toString() {
-    return "exists:" + domainSpec;
+  public Receiver(int rightParts, boolean reverse, String delimiter, boolean escape) {
+    super(rightParts, reverse, delimiter, escape);
   }
 
   @Override
-  public boolean causesLookup() {
-    return true;
-  }
-
-  @Override
-  public boolean matches(
+  public String expand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+    return "unknown";
+  }
+
+  @Override
+  public String toString() {
+    return "%{r"
+        + (getRightParts() > 0 ? getRightParts() : "")
+        + (isReverse() ? "r" : "")
+        + (getDelimiter() == null ? "" : getDelimiter())
+        + "}";
   }
 }

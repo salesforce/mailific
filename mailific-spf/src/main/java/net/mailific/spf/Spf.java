@@ -22,5 +22,5 @@ import java.net.InetAddress;
 
 public interface Spf {
 
-  Result checkHost(InetAddress ip, String domain, String sender);
+  Result checkHost(InetAddress ip, String domain, String sender, String ehloParam);
 }

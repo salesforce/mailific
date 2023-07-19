@@ -19,20 +19,19 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
 public class SenderDomain extends Macro {
 
-  protected SenderDomain(int rightParts, boolean reverse, String delimiter)
+  protected SenderDomain(int rightParts, boolean reverse, String delimiter, boolean escape)
       throws PolicySyntaxException {
-    super(rightParts, reverse, delimiter);
+    super(rightParts, reverse, delimiter, escape);
   }
 
   @Override
   public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, LookupCount lookupCount) {
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     String d = sender.substring(sender.lastIndexOf("@") + 1);
     return transform(d, getRightParts(), isReverse(), getDelimiter());
   }

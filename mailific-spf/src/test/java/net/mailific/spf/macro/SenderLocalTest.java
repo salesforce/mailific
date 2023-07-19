@@ -19,7 +19,6 @@
 package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.LookupCount;
 import net.mailific.spf.SpfUtil;
 import org.junit.After;
 import org.junit.Assert;
@@ -35,7 +34,6 @@ public class SenderLocalTest {
 
   InetAddress ip;
   SenderLocal it;
-  LookupCount lookupCount = new LookupCount(10);
 
   @Before
   public void setup() throws Exception {
@@ -50,8 +48,8 @@ public class SenderLocalTest {
 
   @Test
   public void testExpand() throws Exception {
-    it = new SenderLocal(0, false, null);
+    it = new SenderLocal(0, false, null, false);
 
-    Assert.assertEquals("foo", it.expand(spf, ip, "baz.com", "foo@bar.com", lookupCount));
+    Assert.assertEquals("foo", it.expand(spf, ip, "baz.com", "foo@bar.com", "bar.com"));
   }
 }
