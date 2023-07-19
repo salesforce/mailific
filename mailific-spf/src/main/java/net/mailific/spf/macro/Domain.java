@@ -30,7 +30,7 @@ public class Domain extends Macro {
   }
 
   @Override
-  public String expand(
+  public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     return transform(domain, getRightParts(), isReverse(), getDelimiter());
   }

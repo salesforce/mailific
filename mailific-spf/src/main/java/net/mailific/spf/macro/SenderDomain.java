@@ -30,7 +30,7 @@ public class SenderDomain extends Macro {
   }
 
   @Override
-  public String expand(
+  public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     String d = sender.substring(sender.lastIndexOf("@") + 1);
     return transform(d, getRightParts(), isReverse(), getDelimiter());

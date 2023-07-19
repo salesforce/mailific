@@ -156,4 +156,23 @@ public class MacroTest {
     String actual = it.transform(s, 0, false, ".+-+,=/_=");
     assertEquals("a.b.c.d.e.f.g", actual);
   }
+
+  @Test
+  public void urlEscape_allUnreserved() {
+    assertEquals("abcDEF123._~-", it.urlEscape("abcDEF123._~-"));
+  }
+
+  @Test
+  public void urlEscape_reservedBoundaries() {
+    String unescaped = " %!*+/:@[`{}";
+    String expected = "%20%25%21%2a%2b%2f%3a%40%5b%60%7b%7d";
+    assertEquals(expected, it.urlEscape(unescaped));
+  }
+
+  @Test
+  public void urlEscape_mixed() {
+    String unescaped = "abc DEF%123";
+    String expected = "abc%20DEF%25123";
+    assertEquals(expected, it.urlEscape(unescaped));
+  }
 }

@@ -51,7 +51,6 @@ public class SenderDomainTest {
   @Test
   public void testExpand() throws PolicySyntaxException {
     it = new SenderDomain(0, false, null, false);
-
-    Assert.assertEquals("bar.com", it.expand(spf, ip, "baz.com", "foo@bar.com", "bar.com"));
+    Assert.assertEquals("bar.com", it.innerExpand(spf, ip, "baz.com", "foo@bar.com", "bar.com"));
   }
 }

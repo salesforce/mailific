@@ -18,10 +18,11 @@
 
 package net.mailific.spf.macro;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.InetAddress;
 import net.mailific.spf.SpfUtil;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -49,7 +50,13 @@ public class SenderLocalTest {
   @Test
   public void testExpand() throws Exception {
     it = new SenderLocal(0, false, null, false);
+    assertEquals("foo", it.expand(spf, ip, "baz.com", "foo@bar.com", "bar.com"));
+  }
 
-    Assert.assertEquals("foo", it.expand(spf, ip, "baz.com", "foo@bar.com", "bar.com"));
+  @Test
+  public void expand_escapes() throws Exception {
+    it = new SenderLocal(0, false, null, true);
+    String actual = it.expand(spf, ip, "bar.com", "joe+shmoe@foo.com", "baz.com");
+    assertEquals("joe%2bshmoe", actual);
   }
 }

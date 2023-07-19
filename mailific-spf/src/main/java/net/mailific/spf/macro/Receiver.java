@@ -28,7 +28,7 @@ public class Receiver extends Macro {
   }
 
   @Override
-  public String expand(
+  public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     return "unknown";
   }

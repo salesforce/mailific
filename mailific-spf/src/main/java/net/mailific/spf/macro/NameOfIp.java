@@ -31,8 +31,8 @@ public class NameOfIp extends Macro {
   }
 
   @Override
-  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam)
-      throws Abort {
+  public String innerExpand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
     try {
       String host = spf.validateIp(ip, domain);
       return transform(host, getRightParts(), isReverse(), getDelimiter());

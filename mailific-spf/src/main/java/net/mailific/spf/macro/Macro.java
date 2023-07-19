@@ -18,11 +18,35 @@
 
 package net.mailific.spf.macro;
 
+import static net.mailific.spf.SpfUtilImp.HEX;
+
+import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.stream.Collectors;
+import net.mailific.spf.Abort;
+import net.mailific.spf.SpfUtil;
 import net.mailific.spf.policy.PolicySyntaxException;
 
 public abstract class Macro implements Expandable {
+
+  private static final BitSet unreserved = new BitSet(127);
+
+  static {
+    for (char c = 'A'; c <= 'Z'; c++) {
+      unreserved.set(c);
+    }
+    for (char c = 'a'; c <= 'z'; c++) {
+      unreserved.set(c);
+    }
+    for (char c = '0'; c <= '9'; c++) {
+      unreserved.set(c);
+    }
+    unreserved.set('-');
+    unreserved.set('.');
+    unreserved.set('_');
+    unreserved.set('~');
+  }
 
   private final int rightParts;
   private final boolean reverse;
@@ -121,6 +145,43 @@ public abstract class Macro implements Expandable {
       }
 
       return Arrays.stream(parts).collect(Collectors.joining("."));
+    }
+    return s;
+  }
+
+  public abstract String innerExpand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort;
+
+  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam)
+      throws Abort {
+    String expanded = innerExpand(spf, ip, domain, sender, ehloParam);
+    if (escape) {
+      return urlEscape(expanded);
+    } else {
+      return expanded;
+    }
+  }
+
+  public String urlEscape(String s) {
+    boolean escaped = false;
+    StringBuilder sb = new StringBuilder(s.length());
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (unreserved.get(c)) {
+        if (escaped) {
+          sb.append(c);
+        }
+      } else {
+        if (!escaped) {
+          // First unreserved char. Bite the bullet.
+          sb.append(s.substring(0, i));
+          escaped = true;
+        }
+        sb.append('%').append(HEX[(c & 0xf0) >> 4]).append(HEX[c & 0xF]);
+      }
+    }
+    if (escaped) {
+      return sb.toString();
     }
     return s;
   }
