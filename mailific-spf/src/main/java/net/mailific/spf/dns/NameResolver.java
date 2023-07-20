@@ -18,16 +18,18 @@
 
 package net.mailific.spf.dns;
 
-import java.net.Inet4Address;
-import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.util.List;
 
 public interface NameResolver {
 
-  String[] resolveTxtRecords(String name) throws NameResolutionException, NameNotFound;
+  List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound;
 
-  Inet4Address resolveARecords(String name) throws NameResolutionException, NameNotFound;
+  List<InetAddress> resolveARecords(String name) throws NameResolutionException, NameNotFound;
 
-  Inet6Address resolveAAAARecords(String name) throws NameResolutionException, NameNotFound;
+  List<InetAddress> resolveAAAARecords(String name) throws NameResolutionException, NameNotFound;
+
+  List<String> resolveMXRecords(String name) throws NameResolutionException, NameNotFound;
 
   /**
    * @param name The name of the PTR record (e.g. 4.3.2.1.in-addr.arpa)

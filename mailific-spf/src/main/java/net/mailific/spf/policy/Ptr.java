@@ -19,6 +19,7 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
+import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.macro.MacroString;
 
@@ -40,8 +41,14 @@ public class Ptr implements Mechanism {
 
   @Override
   public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
     // TODO Auto-generated method stub
+    String name = domain;
+    if (domainSpec != null) {
+      name = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    }
+    String validated = spf.validateIp(ip, name, true);
+
     throw new UnsupportedOperationException("Unimplemented method 'matches'");
   }
 }

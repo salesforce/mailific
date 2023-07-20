@@ -22,8 +22,12 @@ import java.io.ByteArrayInputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.dns.NameResolver;
@@ -73,18 +77,18 @@ public class SpfUtilImp implements SpfUtil {
 
   public String lookupSpfRecord(String domain) throws Abort {
     try {
-      String[] txtRecords = resolver.resolveTxtRecords(domain);
+      List<String> txtRecords = resolver.resolveTxtRecords(domain);
       txtRecords =
-          Stream.of(txtRecords)
+          txtRecords.stream()
               .filter(s -> s != null && (s.equals("v=spf1") || s.startsWith("v=spf1 ")))
-              .toArray(String[]::new);
-      if (txtRecords.length < 1) {
+              .collect(Collectors.toList());
+      if (txtRecords.size() < 1) {
         throw new Abort(ResultCode.None, "No SPF record found for: " + domain);
       }
-      if (txtRecords.length > 1) {
+      if (txtRecords.size() > 1) {
         throw new Abort(ResultCode.Permerror, "Multiple SPF records found for: " + domain);
       }
-      return txtRecords[0];
+      return txtRecords.get(0);
     } catch (NameResolutionException e) {
       throw new Abort(ResultCode.Temperror, e.getMessage());
     } catch (NameNotFound e) {
@@ -159,7 +163,7 @@ public class SpfUtilImp implements SpfUtil {
    * @throws NameResolutionException
    */
   @Override
-  public String validateIp(InetAddress ip, String domain)
+  public String validateIp(InetAddress ip, String domain, boolean requireMatch)
       throws NameResolutionException, NameNotFound, Abort {
     incLookupCounter();
     String ptrName = ptrName(ip);
@@ -176,7 +180,7 @@ public class SpfUtilImp implements SpfUtil {
         candidate = result;
       }
     }
-    if (candidate == null) {
+    if (candidate == null && !requireMatch) {
       candidate = results[0];
     }
     return candidate;
@@ -187,5 +191,91 @@ public class SpfUtilImp implements SpfUtil {
       throw new Abort(ResultCode.Permerror, "Maximum total DNS lookups exceeded.");
     }
     return lookupLimit - lookupsUsed;
+  }
+
+  @Override
+  public List<InetAddress> getIpsByMxName(String name, boolean ip4)
+      throws NameResolutionException, Abort {
+    List<String> names;
+    try {
+      names = getNameResolver().resolveMXRecords(name);
+    } catch (NameNotFound e) {
+      return Collections.emptyList();
+    }
+
+    Set<String> nameSet = new HashSet<>(names);
+    if (nameSet.size() > 10) {
+      throw new Abort(ResultCode.Permerror, "More than 10 MX records for " + name);
+    }
+    try {
+      return names.stream()
+          .flatMap(
+              (n) -> {
+                try {
+                  return getIpsByHostname(n, ip4).stream();
+                } catch (NameResolutionException e) {
+                  throw new RuntimeException(e);
+                }
+              })
+          .distinct()
+          .collect(Collectors.toList());
+    } catch (RuntimeException e) {
+      if (e.getCause() != null && e.getCause() instanceof NameResolutionException) {
+        throw (NameResolutionException) e.getCause();
+      }
+      throw e;
+    }
+  }
+
+  public List<InetAddress> getIpsByHostname(String name, boolean ip4)
+      throws NameResolutionException {
+    try {
+      if (ip4) {
+        return getNameResolver().resolveARecords(name);
+      } else {
+        return getNameResolver().resolveAAAARecords(name);
+      }
+    } catch (NameNotFound e) {
+      return Collections.emptyList();
+    }
+  }
+
+  private static final int[] MASKS = {
+    0, 0b10000000, 0b11000000, 0b11100000, 0b11110000, 0b11111000, 0b11111100, 0b11111110
+  };
+
+  @Override
+  public boolean cidrMatch(InetAddress ip1, InetAddress ip2, int bits) {
+    // TODO: null checks
+    if (bits < 0) {
+      return ip1.equals(ip2);
+    }
+    byte[] ip1Bytes = ip1.getAddress();
+    byte[] ip2Bytes = ip2.getAddress();
+    if (ip1Bytes.length != ip2Bytes.length) {
+      return false;
+    }
+    if (bits == 0) {
+      return true;
+    }
+    if (bits > ip1Bytes.length * 8) {
+      // TODO: probably should throw?
+      return false;
+    }
+    int i = 0;
+    while (bits >= 8) {
+      if (ip1Bytes[i] != ip2Bytes[i]) {
+        return false;
+      }
+      ++i;
+      bits -= 8;
+    }
+    if (bits > 0) {
+      int mask = MASKS[bits];
+      if ((ip1Bytes[i] & mask) != (ip2Bytes[i] & mask)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

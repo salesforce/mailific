@@ -18,15 +18,20 @@
 
 package net.mailific.spf.policy;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.List;
+import net.mailific.spf.Abort;
+import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.macro.MacroString;
 
 public class MX implements Mechanism {
   private final MacroString domainSpec;
-  private final String cidrLength;
+  private final int cidrLength;
 
-  public MX(MacroString domainSpec, String cidrLength) {
+  public MX(MacroString domainSpec, int cidrLength) {
     this.domainSpec = domainSpec;
     this.cidrLength = cidrLength;
   }
@@ -34,7 +39,7 @@ public class MX implements Mechanism {
   public String toString() {
     return "mx"
         + (domainSpec == null ? "" : ":" + domainSpec)
-        + (cidrLength == null ? "" : cidrLength);
+        + (cidrLength > -1 ? "/" + cidrLength : "");
   }
 
   @Override
@@ -44,8 +49,20 @@ public class MX implements Mechanism {
 
   @Override
   public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
+    String name = domain;
+    if (domainSpec != null) {
+      name = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    }
+    List<InetAddress> ips;
+    try {
+      ips = spf.getIpsByMxName(name, ip instanceof Inet4Address);
+      if (ips == null) {
+        return false;
+      }
+      return ips.stream().anyMatch(i -> spf.cidrMatch(i, ip, cidrLength));
+    } catch (NameResolutionException e) {
+      throw new Abort(ResultCode.Temperror, e.getMessage());
+    }
   }
 }

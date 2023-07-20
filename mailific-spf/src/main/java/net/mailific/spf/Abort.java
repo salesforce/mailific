@@ -22,8 +22,13 @@ public class Abort extends Exception {
 
   Result result;
 
-  Abort(ResultCode code, String detail) {
+  public Abort(ResultCode code, String detail) {
     super(detail);
     this.result = new Result(code, detail);
+  }
+
+  public Abort(Result result) {
+    super(result.getDetail());
+    this.result = result;
   }
 }

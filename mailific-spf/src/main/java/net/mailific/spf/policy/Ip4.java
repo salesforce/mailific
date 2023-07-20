@@ -23,15 +23,15 @@ import net.mailific.spf.SpfUtil;
 
 public class Ip4 implements Mechanism {
   private final String ip4Network;
-  private final String cidrLength;
+  private final int cidrLength;
 
-  public Ip4(String ip4Network, String cidrLength) {
+  public Ip4(String ip4Network, int cidrLength) {
     this.ip4Network = ip4Network;
     this.cidrLength = cidrLength;
   }
 
   public String toString() {
-    return "ip4:" + ip4Network + (cidrLength == null ? "" : cidrLength);
+    return "ip4:" + ip4Network + (cidrLength > -1 ? "/" + cidrLength : "");
   }
 
   @Override

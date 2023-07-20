@@ -19,6 +19,9 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
+import net.mailific.spf.Abort;
+import net.mailific.spf.Result;
+import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.macro.MacroString;
 
@@ -44,8 +47,22 @@ public class Include implements Mechanism {
 
   @Override
   public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO String newDomain = expand(domainSpec, ip, domain, sender, lookupCount);
-    return false;
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
+    String expandedDomain = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    Result result = spf.checkHost(ip, expandedDomain, sender, ehloParam);
+    switch (result.getCode()) {
+      case Pass:
+        return true;
+      case Fail:
+      case Softfail:
+      case Neutral:
+        return false;
+      case Temperror:
+        throw new Abort(result);
+      case None:
+        throw new Abort(ResultCode.Permerror, "Include returned None.");
+      default:
+        throw new Abort(result);
+    }
   }
 }
