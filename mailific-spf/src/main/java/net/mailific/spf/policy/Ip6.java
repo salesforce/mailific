@@ -19,19 +19,25 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import net.mailific.spf.SpfUtil;
 
 public class Ip6 implements Mechanism {
-  private final String ip6Network;
+
+  private final InetAddress ip6;
   private final int cidrLength;
 
-  public Ip6(String ip6Network, int cidrLength) {
-    this.ip6Network = ip6Network;
+  public Ip6(String ip6Network, int cidrLength) throws PolicySyntaxException {
+    try {
+      this.ip6 = InetAddress.getByName(ip6Network);
+    } catch (UnknownHostException e) {
+      throw new PolicySyntaxException("Bad ip6 network: " + ip6Network);
+    }
     this.cidrLength = cidrLength;
   }
 
   public String toString() {
-    return "ip6:" + ip6Network + (cidrLength > -1 ? "/" + cidrLength : "");
+    return "ip6:" + ip6 + (cidrLength > -1 ? "/" + cidrLength : "");
   }
 
   @Override
@@ -42,7 +48,6 @@ public class Ip6 implements Mechanism {
   @Override
   public boolean matches(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+    return spf.cidrMatch(ip6, ip, cidrLength);
   }
 }

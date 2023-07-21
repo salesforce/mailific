@@ -22,15 +22,37 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Policy {
-
   private final String version;
   private final List<Directive> directives;
+  private final Redirect redirect;
+  private final Explanation explanation;
   private final List<Modifier> modifiers;
 
-  public Policy(String version, List<Directive> directives, List<Modifier> modifiers) {
+  public Policy(String version, List<Directive> directives, List<Modifier> modifiers)
+      throws PolicySyntaxException {
     this.version = version;
     this.directives = directives;
     this.modifiers = modifiers;
+
+    Redirect redirect = null;
+    Explanation explanation = null;
+    for (Modifier m : modifiers) {
+      if (m instanceof Redirect) {
+        if (redirect == null) {
+          redirect = (Redirect) m;
+        } else {
+          throw new PolicySyntaxException("More than one redirect found.");
+        }
+      } else if (m instanceof Explanation) {
+        if (explanation == null) {
+          explanation = (Explanation) m;
+        } else {
+          throw new PolicySyntaxException("More than one explanation found.");
+        }
+      }
+    }
+    this.redirect = redirect;
+    this.explanation = explanation;
   }
 
   public String getVersion() {
@@ -41,17 +63,30 @@ public class Policy {
     return directives;
   }
 
-  public List<Modifier> getModifiers() {
-    return modifiers;
-  }
-
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("\"");
     sb.append(getVersion());
     sb.append(directives.stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
-    sb.append(modifiers.stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
+    if (redirect != null) {
+      sb.append(' ').append(redirect.toString());
+    }
+    if (redirect != null) {
+      sb.append(' ').append(redirect.toString());
+    }
     sb.append("\"");
     return sb.toString();
+  }
+
+  public Redirect getRedirect() {
+    return redirect;
+  }
+
+  public Explanation getExplanation() {
+    return explanation;
+  }
+
+  public List<Modifier> getModifiers() {
+    return modifiers;
   }
 }

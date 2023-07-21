@@ -19,7 +19,11 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
+import java.util.List;
+import net.mailific.spf.Abort;
+import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.macro.MacroString;
 
 public class Exists implements Mechanism {
@@ -28,6 +32,7 @@ public class Exists implements Mechanism {
 
   public Exists(MacroString domainSpec) {
     this.domainSpec = domainSpec;
+    // TODO: null check
   }
 
   public String toString() {
@@ -41,8 +46,13 @@ public class Exists implements Mechanism {
 
   @Override
   public boolean matches(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
+    String expandedDomain = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    try {
+      List<InetAddress> results = spf.getIpsByHostname(expandedDomain, true);
+      return !results.isEmpty();
+    } catch (NameResolutionException e) {
+      throw new Abort(ResultCode.Temperror, e.getMessage());
+    }
   }
 }

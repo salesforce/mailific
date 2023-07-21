@@ -21,6 +21,8 @@ package net.mailific.spf.policy;
 import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.dns.NameNotFound;
+import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.macro.MacroString;
 
 public class Ptr implements Mechanism {
@@ -42,13 +44,15 @@ public class Ptr implements Mechanism {
   @Override
   public boolean matches(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
-    // TODO Auto-generated method stub
     String name = domain;
     if (domainSpec != null) {
       name = domainSpec.expand(spf, ip, domain, sender, ehloParam);
     }
-    String validated = spf.validateIp(ip, name, true);
-
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+    try {
+      String validatedName = spf.validatedHostForIp(ip, name, true);
+      return validatedName != null;
+    } catch (NameResolutionException | NameNotFound e) {
+      return false;
+    }
   }
 }

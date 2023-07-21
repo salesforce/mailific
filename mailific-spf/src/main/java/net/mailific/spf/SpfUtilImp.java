@@ -163,27 +163,47 @@ public class SpfUtilImp implements SpfUtil {
    * @throws NameResolutionException
    */
   @Override
-  public String validateIp(InetAddress ip, String domain, boolean requireMatch)
+  public String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
       throws NameResolutionException, NameNotFound, Abort {
-    incLookupCounter();
     String ptrName = ptrName(ip);
     String[] results = getNameResolver().resolvePtrRecords(ptrName);
     if (results == null || results.length == 0) {
       return null;
     }
-    String candidate = null;
+    String match = null;
+    Set<String> subdomains = new HashSet<>();
+    Set<String> fallbacks = new HashSet<>();
     for (String result : results) {
       if (result.equalsIgnoreCase(domain)) {
-        return result;
-      }
-      if (candidate == null && result.endsWith(domain)) {
-        candidate = result;
+        match = result;
+      } else if (result.endsWith(domain)) {
+        subdomains.add(result);
+      } else {
+        fallbacks.add(result);
       }
     }
-    if (candidate == null && !requireMatch) {
-      candidate = results[0];
+    if (match != null && nameHasIp(match, ip)) {
+      return match;
     }
-    return candidate;
+    match = subdomains.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
+    if (match != null) {
+      return match;
+    }
+    if (requireMatch) {
+      return null;
+    }
+    return fallbacks.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
+  }
+
+  private boolean nameHasIp(String name, InetAddress ip) {
+    try {
+      List<InetAddress> ips = getIpsByHostname(name, ip instanceof Inet4Address);
+      return ips.stream().anyMatch(i -> i.equals(ip));
+    } catch (NameResolutionException e) {
+      // If a DNS error occurs while doing an A RR lookup,
+      // then that domain name is skipped and the search continues.
+      return false;
+    }
   }
 
   public int incLookupCounter() throws Abort {

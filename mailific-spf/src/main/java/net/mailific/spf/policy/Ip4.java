@@ -19,19 +19,24 @@
 package net.mailific.spf.policy;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import net.mailific.spf.SpfUtil;
 
 public class Ip4 implements Mechanism {
-  private final String ip4Network;
+  private final InetAddress ip4;
   private final int cidrLength;
 
-  public Ip4(String ip4Network, int cidrLength) {
-    this.ip4Network = ip4Network;
+  public Ip4(String ip4Network, int cidrLength) throws PolicySyntaxException {
+    try {
+      this.ip4 = InetAddress.getByName(ip4Network);
+    } catch (UnknownHostException e) {
+      throw new PolicySyntaxException("Bad ip4 network: " + ip4Network);
+    }
     this.cidrLength = cidrLength;
   }
 
   public String toString() {
-    return "ip4:" + ip4Network + (cidrLength > -1 ? "/" + cidrLength : "");
+    return "ip4:" + ip4 + (cidrLength > -1 ? "/" + cidrLength : "");
   }
 
   @Override
@@ -42,7 +47,6 @@ public class Ip4 implements Mechanism {
   @Override
   public boolean matches(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'matches'");
+    return spf.cidrMatch(ip4, ip, cidrLength);
   }
 }

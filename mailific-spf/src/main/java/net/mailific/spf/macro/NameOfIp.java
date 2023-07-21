@@ -34,7 +34,8 @@ public class NameOfIp extends Macro {
   public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
     try {
-      String host = spf.validateIp(ip, domain, false);
+      spf.incLookupCounter();
+      String host = spf.validatedHostForIp(ip, domain, false);
       return transform(host, getRightParts(), isReverse(), getDelimiter());
     } catch (NameResolutionException | NameNotFound e) {
       return "unknown";
