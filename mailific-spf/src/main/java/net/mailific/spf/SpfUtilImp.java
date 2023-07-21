@@ -65,7 +65,7 @@ public class SpfUtilImp implements SpfUtil {
         if (result != null) {
           if (result.getCode() == ResultCode.Fail && policy.getExplanation() != null) {
             String explanation =
-                policy.getExplanation().getDomainSpec().expand(this, ip, domain, sender, ehloParam);
+                policy.getExplanation().expand(this, ip, domain, sender, ehloParam);
             result = new Result(result.getCode(), explanation);
           }
           return result;
@@ -308,5 +308,10 @@ public class SpfUtilImp implements SpfUtil {
       }
     }
     return true;
+  }
+
+  @Override
+  public List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound {
+    return getNameResolver().resolveTxtRecords(name);
   }
 }

@@ -26,13 +26,11 @@ import net.mailific.spf.dns.NameResolver;
 
 public interface SpfUtil extends Spf {
 
-  // String expand(InetAddress ip, String domain, String sender);
-
   NameResolver getNameResolver();
 
   String dotFormatIp(InetAddress ip);
 
-  // String ptrName(InetAddress ip);
+  List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound;
 
   String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
       throws NameResolutionException, NameNotFound, Abort;

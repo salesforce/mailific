@@ -42,8 +42,12 @@ public class SpfPolicy {
     {
         try {
             SpfPolicy parser = new SpfPolicy(System.in);
-            Policy policy = parser.policy();
-            System.out.println(policy.toString());
+//            Policy policy = parser.policy();
+  //          System.out.println(policy.toString());
+
+            MacroString ms = parser.explainString();
+            System.out.println(ms.toString());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,7 +58,6 @@ PARSER_END(SpfPolicy)
 
 SKIP: {" "}
 <DSPEC> SKIP: { " " : DEFAULT }
-
 
 TOKEN:
 {
@@ -81,17 +84,17 @@ TOKEN:
 
 <MEX> TOKEN:
 {
-    < MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" ,"c", "r", "t", "v"] > : MEX2
+    < MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" , "v"] > : MEX2
 }
 
-<MEX2> TOKEN:
+<MEX2,EMEX2> TOKEN:
 {
     < DIGITS: ( ["0"-"9"] ) + >
 }
 
-<MEX2> TOKEN: { < REVERSE : "r" > }
+<MEX2,EMEX2> TOKEN: { < REVERSE : "r" > }
 
-<MEX2> TOKEN:
+<MEX2,EMEX2> TOKEN:
 {
     < DELIMITER: ( [".", "-", "+", ",", "/", "_", "="] )+ >
 }
@@ -103,10 +106,10 @@ TOKEN:
 
 <DSPEC> TOKEN: { < MACRO_EXPAND_START : "%{" > : MEX }
 
-<DSPEC> TOKEN: { < MACRO_ESCAPED : "%" ["%","_","-"] > }
+<DSPEC,EXP> TOKEN: { < MACRO_ESCAPED : "%" ["%","_","-"] > }
 
 
-<DSPEC> TOKEN:
+<DSPEC,EXP> TOKEN:
 {
     < MACRO_LITERAL: ( ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", "/",
                       "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
@@ -317,10 +320,20 @@ Macro macro() throws PolicySyntaxException :
       ( <REVERSE> { reverse = true; } )?
       ( t = <DELIMITER> { delimiter = t.image; } )?
       < MACRO_EXPAND_END >
-    )
     {
         return Macro.macro(type, digits, reverse, delimiter);
     }
+     |
+      < E_MACRO_EXPAND_START >
+      t = <E_MACRO_LETTER> { type = t.image; }
+      ( t = <DIGITS> { digits = Integer.parseInt(t.image); } )?
+      ( <REVERSE> { reverse = true; } )?
+      ( t = <DELIMITER> { delimiter = t.image; } )?
+      < E_MACRO_EXPAND_END >
+    {
+        return Macro.macro(type, digits, reverse, delimiter);
+    }
+)
 }
 
 Mechanism mechanism() throws PolicySyntaxException :
@@ -460,4 +473,46 @@ public Policy policy() throws PolicySyntaxException :
      {
        return new Policy(version, directives, modifiers);
      } 
+}
+
+
+<EXP> TOKEN : { < SP : " " > }
+<EXP> TOKEN: { < E_MACRO_EXPAND_START : "%{" > : EMEX }
+<EMEX> TOKEN:
+{
+    < E_MACRO_LETTER: ["s", "l", "o", "d", "i", "p", "h" ,"c", "r", "t", "v"] > : EMEX2
+}
+<EMEX2> TOKEN:
+{
+    <  E_MACRO_EXPAND_END: "}" > : EXP
+}
+
+
+public MacroString explainString() throws PolicySyntaxException:
+{
+    Token t = null;
+    MacroString ms = new MacroString();
+    Macro macro = null;
+   token_source.SwitchTo(EXP);
+}
+{
+    (
+     macro = macro()
+     {
+         ms.add(macro);
+     }
+     |
+     t = < MACRO_LITERAL >
+     {
+         ms.add(new Literal(t.image));
+     }
+     |
+     < SP >
+     {
+         ms.add(new Literal(" "));
+     }
+     )*
+    {
+        return ms;
+    }
 }

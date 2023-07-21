@@ -18,9 +18,20 @@
 
 package net.mailific.spf.policy;
 
+import java.io.ByteArrayInputStream;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import net.mailific.spf.Abort;
+import net.mailific.spf.SpfUtil;
+import net.mailific.spf.dns.NameNotFound;
+import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.macro.Expandable;
 import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.parser.ParseException;
+import net.mailific.spf.parser.SpfPolicy;
 
-public class Explanation extends Modifier {
+public class Explanation extends Modifier implements Expandable {
 
   private final MacroString domainSpec;
 
@@ -32,7 +43,23 @@ public class Explanation extends Modifier {
     return "exp=" + domainSpec;
   }
 
-  public MacroString getDomainSpec() {
-    return domainSpec;
+  @Override
+  public String expand(SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam)
+      throws Abort {
+    String name = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    try {
+      List<String> records = spf.resolveTxtRecords(name);
+      if (records.size() != 1) {
+        return null;
+      }
+      SpfPolicy parser =
+          new SpfPolicy(
+              new ByteArrayInputStream(records.get(0).getBytes(StandardCharsets.US_ASCII)),
+              "US_ASCII");
+      MacroString ms = parser.explainString();
+      return ms.expand(spf, ip, domain, sender, ehloParam);
+    } catch (NameResolutionException | NameNotFound | ParseException | PolicySyntaxException e) {
+      return null;
+    }
   }
 }
