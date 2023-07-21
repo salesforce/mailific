@@ -28,7 +28,7 @@ public class Abort extends Exception {
   }
 
   public Abort(Result result) {
-    super(result.getDetail());
+    super(result.getExplanation());
     this.result = result;
   }
 }

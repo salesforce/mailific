@@ -31,4 +31,8 @@ public class Explanation extends Modifier {
   public String toString() {
     return "exp=" + domainSpec;
   }
+
+  public MacroString getDomainSpec() {
+    return domainSpec;
+  }
 }

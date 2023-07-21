@@ -63,10 +63,21 @@ public class SpfUtilImp implements SpfUtil {
       for (Directive directive : policy.getDirectives()) {
         Result result = directive.evaluate(this, ip, domain, sender, ehloParam);
         if (result != null) {
-          // TODO exp
+          if (result.getCode() == ResultCode.Fail && policy.getExplanation() != null) {
+            String explanation =
+                policy.getExplanation().getDomainSpec().expand(this, ip, domain, sender, ehloParam);
+            result = new Result(result.getCode(), explanation);
+          }
           return result;
         }
       }
+      if (policy.getRedirect() != null) {
+        incLookupCounter();
+        String redirectDomain =
+            policy.getRedirect().getDomainSpec().expand(this, ip, domain, sender, ehloParam);
+        return checkHost(ip, redirectDomain, sender, ehloParam);
+      }
+
     } catch (ParseException | PolicySyntaxException e) {
       return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {

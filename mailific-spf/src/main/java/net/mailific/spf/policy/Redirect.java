@@ -31,4 +31,8 @@ public class Redirect extends Modifier {
   public String toString() {
     return "redirect=" + domainSpec;
   }
+
+  public MacroString getDomainSpec() {
+    return domainSpec;
+  }
 }

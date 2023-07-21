@@ -20,18 +20,18 @@ package net.mailific.spf;
 
 public class Result {
   private final ResultCode code;
-  private final String detail;
+  private final String explanation;
 
   public Result(ResultCode code, String detail) {
     this.code = code;
-    this.detail = detail;
+    this.explanation = detail;
   }
 
   public ResultCode getCode() {
     return code;
   }
 
-  public String getDetail() {
-    return detail;
+  public String getExplanation() {
+    return explanation;
   }
 }
