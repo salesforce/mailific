@@ -37,6 +37,8 @@ public class SpfTest {
   InetAddress ip;
   InetAddress ip2;
 
+  InetAddress ip6;
+
   private AutoCloseable mocks;
 
   @Before
@@ -45,6 +47,7 @@ public class SpfTest {
     it = new SpfImp(dns, 10, 2);
     ip = InetAddress.getByName("1.2.3.4");
     ip2 = InetAddress.getByName("10.20.30.40");
+    ip6 = InetAddress.getByName("1234:5678::90ab:cd3f");
   }
 
   @After
@@ -177,6 +180,7 @@ public class SpfTest {
   }
 
   // 4.6.2
+  // 4.7
   @Test
   public void noMatch() {
     dns.txt("foo.com", "v=spf1 ip4:1.2.3.8");
@@ -473,11 +477,134 @@ public class SpfTest {
     assertEquals(ResultCode.Pass, result.getCode());
   }
 
+  // 4.6.4
   @Test
   public void voidLookups_A_MX() {
     dns.txt("foo.com", "v=spf1 a:no1.com a:no2.com mx:no3.com +all")
         .a("no2.com", new NameNotFound("no2.com"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  // Void lookup with include does not need to be tested because
+  // that's automatically a permerror.
+
+  // 4.6.4
+  @Test
+  public void voidLookups_MX_subqueries() {
+    dns.txt("foo.com", "v=spf1 mx +all")
+        .mx("foo.com", "no1.com")
+        .mx("foo.com", "no2.com")
+        .mx("foo.com", "no3.com")
+        .a("no2.com", new NameNotFound("no2.com"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  // 4.6.4
+  @Test
+  public void voidLookups_ptr_exists() {
+    dns.txt("foo.com", "v=spf1 ptr exists:no1.com exists:no2.com +all")
+        .a("no2.com", new NameNotFound("no2.com"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  // 4.6.4
+  @Test
+  public void voidLookups_ptr_subqueries() {
+    dns.txt("foo.com", "v=spf1 ptr +all")
+        .ptr("4.3.2.1.in-addr.arpa", "no1.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "no2.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "no3.foo.com")
+        .a("no2.com", new NameNotFound("no2.com"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  // 4.6.4
+  @Test
+  public void voidLookups_recursive() {
+    dns.txt("foo.com", "v=spf1 a:no1.com include:foo2.com +all")
+        .txt("foo2.com", "v=spf1 a:no2.com include:foo3.com +all")
+        .txt("foo3.com", "v=spf1 a:no3.com +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  ////////////////////////////////////////////////////
+  // 4.8 When no domain-spec provided, use <domain> //
+  ////////////////////////////////////////////////////
+
+  @Test
+  public void aNoDs() {
+    dns.txt("foo.com", "v=spf1 ~a -all").a("foo.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void mxNoDs() {
+    dns.txt("foo.com", "v=spf1 ~mx -all").mx("foo.com", "mx.foo.com").a("mx.foo.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void ptrNoDs() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all")
+        .ptr("4.3.2.1.in-addr.arpa", "foo.com")
+        .a("foo.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  // 5 - CIDR prefixes
+
+  @Test
+  public void cidr_ip4_match() {
+    dns.txt("foo.com", "v=spf1 ~ip4:1.2.254.205/16 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void cidr_ip4_no_match() {
+    dns.txt("foo.com", "v=spf1 ~ip4:1.2.254.205/17 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  @Test
+  public void cidr_ip6_match() {
+    dns.txt("foo.com", "v=spf1 ~ip6:1234:5678:1234::/32 -all");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void cidr_ip6_no_match() {
+    dns.txt("foo.com", "v=spf1 ~ip6:1234:5678:1234::/48 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  /**
+   * @Test public void cidr_mx_match() { dns.txt("foo.com", "v=spf1 ~mx:bar.baz/16 -all")
+   * .mx("bar.baz", "baz.quux") .a("baz.quux", "1.2.254.205"); Result result = it.checkHost(ip,
+   * "foo.com", "sender@foo.com", "bar.baz"); assertEquals(ResultCode.Softfail, result.getCode());
+   * } @Test public void cidr_mx_no_match() { dns.txt("foo.com", "v=spf1 ~ip4:1.2.254.205/17 -all");
+   * Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+   * assertEquals(ResultCode.Fail, result.getCode()); }
+   */
+  ///////////////////
+  // 5. a vs aaaa  //
+  ///////////////////
+
+  @Test
+  public void a_ip4() {
+    dns.txt("foo.com", "v=spf1 ~a:baz.com -all").a("baz.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
   }
 }

@@ -236,7 +236,7 @@ public class SpfUtilImp implements SpfUtil {
 
   private boolean nameHasIp(String name, InetAddress ip) throws RuntimeAbort {
     try {
-      List<InetAddress> ips = getIpsByHostname(name, ip instanceof Inet4Address);
+      List<InetAddress> ips = getIpsByHostnameRte(name, ip instanceof Inet4Address);
       return ips.stream().anyMatch(i -> i.equals(ip));
     } catch (RuntimeDnsFail e) {
       // If a DNS error occurs while doing an A RR lookup,
@@ -253,6 +253,7 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   public int incVoidLookupCounter() throws Abort {
+    System.out.println("Incing vlc from " + voidLookupsUsed);
     if (++voidLookupsUsed > voidLookupLimit) {
       throw new Abort(ResultCode.Permerror, "Maximum DNS void lookups exceeded.");
     }
@@ -278,7 +279,7 @@ public class SpfUtilImp implements SpfUtil {
     }
     try {
       return names.stream()
-          .flatMap(n -> getIpsByHostname(n, ip4).stream())
+          .flatMap(n -> getIpsByHostnameRte(n, ip4).stream())
           .distinct()
           .collect(Collectors.toList());
     } catch (RuntimeDnsFail e) {
@@ -288,8 +289,18 @@ public class SpfUtilImp implements SpfUtil {
     }
   }
 
-  public List<InetAddress> getIpsByHostname(String name, boolean ip4)
+  private List<InetAddress> getIpsByHostnameRte(String name, boolean ip4)
       throws RuntimeDnsFail, RuntimeAbort {
+    try {
+      return getIpsByHostname(name, ip4);
+    } catch (DnsFail e) {
+      throw new RuntimeDnsFail(e);
+    } catch (Abort e) {
+      throw new RuntimeAbort(e);
+    }
+  }
+
+  public List<InetAddress> getIpsByHostname(String name, boolean ip4) throws DnsFail, Abort {
     List<InetAddress> rv = null;
     try {
       if (ip4) {
@@ -303,11 +314,7 @@ public class SpfUtilImp implements SpfUtil {
       throw new RuntimeDnsFail(e);
     }
     if (rv == null || rv.isEmpty()) {
-      try {
-        incVoidLookupCounter();
-      } catch (Abort e) {
-        throw new RuntimeAbort(e);
-      }
+      incVoidLookupCounter();
       return Collections.emptyList();
     }
     return rv;
