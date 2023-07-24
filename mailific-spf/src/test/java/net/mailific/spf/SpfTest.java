@@ -589,14 +589,24 @@ public class SpfTest {
     assertEquals(ResultCode.Fail, result.getCode());
   }
 
-  /**
-   * @Test public void cidr_mx_match() { dns.txt("foo.com", "v=spf1 ~mx:bar.baz/16 -all")
-   * .mx("bar.baz", "baz.quux") .a("baz.quux", "1.2.254.205"); Result result = it.checkHost(ip,
-   * "foo.com", "sender@foo.com", "bar.baz"); assertEquals(ResultCode.Softfail, result.getCode());
-   * } @Test public void cidr_mx_no_match() { dns.txt("foo.com", "v=spf1 ~ip4:1.2.254.205/17 -all");
-   * Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-   * assertEquals(ResultCode.Fail, result.getCode()); }
-   */
+  @Test
+  public void cidr_mx_match() {
+    dns.txt("foo.com", "v=spf1 ~mx:bar.baz/16 -all")
+        .mx("bar.baz", "baz.quux")
+        .a("baz.quux", "1.2.254.205");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void cidr_mx_no_match() {
+    dns.txt("foo.com", "v=spf1 ~mx:bar.baz/17 -all")
+        .mx("bar.baz", "baz.quux")
+        .a("baz.quux", "1.2.254.205");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
   ///////////////////
   // 5. a vs aaaa  //
   ///////////////////
@@ -605,6 +615,31 @@ public class SpfTest {
   public void a_ip4() {
     dns.txt("foo.com", "v=spf1 ~a:baz.com -all").a("baz.com", "1.2.3.4");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void a_ip6() {
+    dns.txt("foo.com", "v=spf1 ~a:baz.com -all").aaaa("baz.com", ip6);
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void mx_ip4() {
+    dns.txt("foo.com", "v=spf1 ~mx:baz.com -all")
+        .mx("baz.com", "mail.baz.com")
+        .a("mail.baz.com", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void mx_ip6() {
+    dns.txt("foo.com", "v=spf1 ~mx:baz.com -all")
+        .mx("baz.com", "mail.baz.com")
+        .aaaa("mail.baz.com", ip6);
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Softfail, result.getCode());
   }
 }

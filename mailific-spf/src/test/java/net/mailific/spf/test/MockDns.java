@@ -113,6 +113,7 @@ public class MockDns implements NameResolver {
       throwIfException(o);
       if (o instanceof InetAddress) {
         rv.add((InetAddress) o);
+        continue;
       }
       try {
         rv.add(InetAddress.getByName(o.toString()));

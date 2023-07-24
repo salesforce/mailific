@@ -57,7 +57,7 @@ public class SpfPolicy {
 PARSER_END(SpfPolicy)
 
 SKIP: {" "}
-<DSPEC> SKIP: { " " : DEFAULT }
+<DSPEC,IPNET> SKIP: { " " : DEFAULT }
 
 TOKEN:
 {
@@ -111,10 +111,10 @@ TOKEN:
 
 <DSPEC,EXP> TOKEN:
 {
-    < MACRO_LITERAL: ( ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-", "/",
+    < MACRO_LITERAL: ( ["!", "\"", "#", "$", "&", "'", "(", ")", "*", "+", ",", "-",
                       "0"-"9",":", ";", "<", "=", ">", "?", "@", "A"-"Z","[", "\\", "]", "^",
-                        "_", "`", "a"-"z","{", "|", "}", "~"] )+ | "." >
-        }
+                        "_", "`", "a"-"z","{", "|", "}", "~"] )+ | "."  | "/" >
+}
 
 
 
@@ -122,8 +122,8 @@ TOKEN:
    Choosing to be a little easier than the BNF. Will verify appropriate range in code. 
 */
 
-TOKEN: { < CIDR_START : "/" > : CIDR }
-<CIDR> TOKEN: { < CIDR_DIGITS : < DIGIT > ( < DIGIT > ( < DIGIT > )? )? > : DEFAULT }
+
+<DSPEC,IPNET> TOKEN: { < CIDR_DIGITS : "/" < DIGIT > ( < DIGIT > ( < DIGIT > )? )? > : DEFAULT }
 
 
 
@@ -181,7 +181,7 @@ TOKEN:
 
 <IPNET> TOKEN:
 {
-    < IP4_NETWORK : < QNUM > "." < QNUM > "." < QNUM > "." < QNUM > > : DEFAULT
+    < IP4_NETWORK : < QNUM > "." < QNUM > "." < QNUM > "." < QNUM > >
         }
 
 TOKEN:
@@ -199,7 +199,7 @@ TOKEN:
     < IP6_NETWORK : "::" ( < IP4_NETWORK > )? | "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
         | < I6DIGS > ( ":" < I6DIGS > )+ "::" ( < IP4_NETWORK > )?
         | < I6DIGS > ( ":" < I6DIGS > )* "::" < I6DIGS > ( ":" < I6DIGS > )* ( ":" < IP4_NETWORK >)?
-        > : DEFAULT
+        >
         }
 
 TOKEN:
@@ -360,7 +360,7 @@ Mechanism mechanism() throws PolicySyntaxException :
           ms = null;
       }
             ( < COLON > ms = domainSpec() )? 
-            ( < CIDR_START > t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image); } )?
+            ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
       {
           return new A(ms, cidr);
       }
@@ -371,7 +371,7 @@ Mechanism mechanism() throws PolicySyntaxException :
           ms = null;
       }
             ( < COLON > ms = domainSpec() )?
-            ( < CIDR_START > t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image); } )?
+            ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
       {
           return new MX(ms, cidr);
       }
@@ -388,14 +388,15 @@ Mechanism mechanism() throws PolicySyntaxException :
       )
      |
      (      < IP4 > ( t = < IP4_NETWORK > { dspec = t.image; } )?
-            ( < CIDR_START > t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image); } )?
+            ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
+
       {
           return new Ip4(dspec, cidr);
       }
       )
      |
      (      < IP6 > ( t = < IP6_NETWORK > { dspec = t.image; } )?
-            ( < CIDR_START > t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image); } )?
+            ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
       {
           return new Ip6(dspec, cidr);
       }
