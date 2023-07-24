@@ -20,8 +20,8 @@ package net.mailific.spf;
 
 import java.net.InetAddress;
 import java.util.List;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.dns.NameNotFound;
-import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.dns.NameResolver;
 
 public interface SpfUtil extends Spf {
@@ -30,17 +30,16 @@ public interface SpfUtil extends Spf {
 
   String dotFormatIp(InetAddress ip);
 
-  List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound;
+  List<String> resolveTxtRecords(String name) throws DnsFail, NameNotFound, Abort;
 
   String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
-      throws NameResolutionException, NameNotFound, Abort;
+      throws DnsFail, NameNotFound, Abort;
 
   int incLookupCounter() throws Abort;
 
-  List<InetAddress> getIpsByHostname(String name, boolean ip4)
-      throws NameResolutionException, Abort;
+  List<InetAddress> getIpsByHostname(String name, boolean ip4) throws DnsFail, Abort;
 
-  List<InetAddress> getIpsByMxName(String name, boolean ip4) throws NameResolutionException, Abort;
+  List<InetAddress> getIpsByMxName(String name, boolean ip4) throws DnsFail, Abort;
 
   boolean cidrMatch(InetAddress ip1, InetAddress ip2, int bits);
 }

@@ -23,7 +23,7 @@ import java.util.List;
 import net.mailific.spf.Abort;
 import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.macro.MacroString;
 
 public class Exists implements Mechanism {
@@ -51,7 +51,7 @@ public class Exists implements Mechanism {
     try {
       List<InetAddress> results = spf.getIpsByHostname(expandedDomain, true);
       return !results.isEmpty();
-    } catch (NameResolutionException e) {
+    } catch (DnsFail e) {
       throw new Abort(ResultCode.Temperror, e.getMessage());
     }
   }

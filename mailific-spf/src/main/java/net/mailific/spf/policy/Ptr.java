@@ -21,8 +21,7 @@ package net.mailific.spf.policy;
 import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.NameNotFound;
-import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.macro.MacroString;
 
 public class Ptr implements Mechanism {
@@ -51,7 +50,7 @@ public class Ptr implements Mechanism {
     try {
       String validatedName = spf.validatedHostForIp(ip, name, true);
       return validatedName != null;
-    } catch (NameResolutionException | NameNotFound e) {
+    } catch (DnsFail e) {
       return false;
     }
   }

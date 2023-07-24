@@ -18,4 +18,9 @@
 
 package net.mailific.spf.dns;
 
-public class NameNotFound extends Exception {}
+public class NameNotFound extends DnsFail {
+
+  public NameNotFound(String name) {
+    super("DNS name not found: " + name);
+  }
+}

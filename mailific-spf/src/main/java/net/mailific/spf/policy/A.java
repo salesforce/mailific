@@ -24,7 +24,7 @@ import java.util.List;
 import net.mailific.spf.Abort;
 import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.macro.MacroString;
 
 public class A implements Mechanism {
@@ -62,7 +62,7 @@ public class A implements Mechanism {
         return false;
       }
       return ips.stream().anyMatch(i -> spf.cidrMatch(i, ip, cidrLength));
-    } catch (NameResolutionException e) {
+    } catch (DnsFail e) {
       throw new Abort(ResultCode.Temperror, "Error looking up " + name);
     }
   }

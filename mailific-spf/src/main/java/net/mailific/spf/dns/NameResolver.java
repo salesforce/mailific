@@ -23,16 +23,24 @@ import java.util.List;
 
 public interface NameResolver {
 
-  List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound;
+  /**
+   * @param name The name to look up in DNS
+   * @return A list of Strings. Each returned String corresponds to one TXT record found. If a TXT
+   *     record had multiple Strings, those strings are concatenated, without adding any space
+   *     between them, and the results added to the list as a single String.
+   * @throws DnsFail
+   * @throws NameNotFound
+   */
+  List<String> resolveTxtRecords(String name) throws DnsFail, NameNotFound;
 
-  List<InetAddress> resolveARecords(String name) throws NameResolutionException, NameNotFound;
+  List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound;
 
-  List<InetAddress> resolveAAAARecords(String name) throws NameResolutionException, NameNotFound;
+  List<InetAddress> resolveAAAARecords(String name) throws DnsFail, NameNotFound;
 
-  List<String> resolveMXRecords(String name) throws NameResolutionException, NameNotFound;
+  List<String> resolveMXRecords(String name) throws DnsFail, NameNotFound;
 
   /**
    * @param name The name of the PTR record (e.g. 4.3.2.1.in-addr.arpa)
    */
-  String[] resolvePtrRecords(String name) throws NameResolutionException, NameNotFound;
+  List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound;
 }

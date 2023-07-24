@@ -24,8 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.NameNotFound;
-import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.macro.Expandable;
 import net.mailific.spf.macro.MacroString;
 import net.mailific.spf.parser.ParseException;
@@ -58,7 +57,7 @@ public class Explanation extends Modifier implements Expandable {
               "US_ASCII");
       MacroString ms = parser.explainString();
       return ms.expand(spf, ip, domain, sender, ehloParam);
-    } catch (NameResolutionException | NameNotFound | ParseException | PolicySyntaxException e) {
+    } catch (DnsFail | ParseException | PolicySyntaxException e) {
       return null;
     }
   }

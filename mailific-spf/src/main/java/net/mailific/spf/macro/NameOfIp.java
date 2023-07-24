@@ -21,8 +21,7 @@ package net.mailific.spf.macro;
 import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.NameNotFound;
-import net.mailific.spf.dns.NameResolutionException;
+import net.mailific.spf.dns.DnsFail;
 
 public class NameOfIp extends Macro {
 
@@ -37,7 +36,7 @@ public class NameOfIp extends Macro {
       spf.incLookupCounter();
       String host = spf.validatedHostForIp(ip, domain, false);
       return transform(host, getRightParts(), isReverse(), getDelimiter());
-    } catch (NameResolutionException | NameNotFound e) {
+    } catch (DnsFail e) {
       return "unknown";
     }
   }

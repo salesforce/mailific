@@ -23,18 +23,24 @@ import net.mailific.spf.dns.NameResolver;
 
 public class SpfImp implements Spf {
 
-  private final SpfUtilFactory utilFactory;
   private final NameResolver resolver;
   private final int lookupLimit;
+  private int voidLookupLimit;
 
-  public SpfImp(SpfUtilFactory utilFactory, NameResolver resolver, int lookupLimit) {
-    this.utilFactory = utilFactory;
+  public SpfImp(NameResolver resolver, int lookupLimit, int voidLookupLimit) {
     this.resolver = resolver;
     this.lookupLimit = lookupLimit;
+    this.voidLookupLimit = voidLookupLimit;
   }
+
+  // TODO: overload for sender/domain
 
   @Override
   public Result checkHost(InetAddress ip, String domain, String sender, String ehloParam) {
-    return utilFactory.create(resolver, lookupLimit).checkHost(ip, domain, sender, ehloParam);
+    if (sender == null || sender.isBlank() || sender.strip().equals("<>")) {
+      sender = "postmaster@" + domain;
+    }
+    return new SpfUtilImp(resolver, lookupLimit, voidLookupLimit)
+        .checkHost(ip, domain, sender, ehloParam);
   }
 }

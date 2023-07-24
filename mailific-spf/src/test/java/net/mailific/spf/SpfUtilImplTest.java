@@ -19,13 +19,17 @@
 package net.mailific.spf;
 
 import java.net.InetAddress;
+import net.mailific.spf.dns.NameResolver;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class SpfUtilImplTest {
+
+  @Mock NameResolver resolver;
 
   private SpfUtilImp it;
 
@@ -34,7 +38,7 @@ public class SpfUtilImplTest {
   @Before
   public void setup() throws Exception {
     mocks = MockitoAnnotations.openMocks(this);
-    it = new SpfUtilImp();
+    it = new SpfUtilImp(resolver);
   }
 
   @After

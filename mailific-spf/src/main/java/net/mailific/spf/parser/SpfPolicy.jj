@@ -516,3 +516,8 @@ public MacroString explainString() throws PolicySyntaxException:
         return ms;
     }
 }
+
+< * > TOKEN :
+{
+  < UNEXPECTED_CHAR : ~[] >
+}

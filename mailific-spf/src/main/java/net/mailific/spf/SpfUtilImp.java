@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import net.mailific.spf.dns.DnsFail;
+import net.mailific.spf.dns.InvalidName;
 import net.mailific.spf.dns.NameNotFound;
-import net.mailific.spf.dns.NameResolutionException;
 import net.mailific.spf.dns.NameResolver;
+import net.mailific.spf.dns.RuntimeDnsFail;
 import net.mailific.spf.parser.ParseException;
 import net.mailific.spf.parser.SpfPolicy;
 import net.mailific.spf.policy.Directive;
@@ -47,9 +49,20 @@ public class SpfUtilImp implements SpfUtil {
   private int lookupLimit = 10;
   private int lookupsUsed = 0;
 
+  private int voidLookupLimit = 2;
+  private int voidLookupsUsed = 0;
+
   private NameResolver resolver;
 
-  // String expand(InetAddress ip, String domain, String sender);
+  public SpfUtilImp(NameResolver resolver) {
+    this.resolver = resolver;
+  }
+
+  public SpfUtilImp(NameResolver resolver, int lookupLimit, int voidLookupLimit) {
+    this(resolver);
+    this.lookupLimit = lookupLimit;
+    this.voidLookupLimit = voidLookupLimit;
+  }
 
   public Result checkHost(InetAddress ip, String domain, String sender, String ehloParam) {
 
@@ -58,7 +71,7 @@ public class SpfUtilImp implements SpfUtil {
       String spfRecord = lookupSpfRecord(domain);
       SpfPolicy parser =
           new SpfPolicy(
-              new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US_ASCII");
+              new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
       Policy policy = parser.policy();
       for (Directive directive : policy.getDirectives()) {
         Result result = directive.evaluate(this, ip, domain, sender, ehloParam);
@@ -77,13 +90,12 @@ public class SpfUtilImp implements SpfUtil {
             policy.getRedirect().getDomainSpec().expand(this, ip, domain, sender, ehloParam);
         return checkHost(ip, redirectDomain, sender, ehloParam);
       }
-
+      return new Result(ResultCode.Neutral, "No directives matched.");
     } catch (ParseException | PolicySyntaxException e) {
       return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {
       return e.result;
     }
-    return new Result(ResultCode.Permerror, "NOT IMPLEMENTED");
   }
 
   public String lookupSpfRecord(String domain) throws Abort {
@@ -100,10 +112,12 @@ public class SpfUtilImp implements SpfUtil {
         throw new Abort(ResultCode.Permerror, "Multiple SPF records found for: " + domain);
       }
       return txtRecords.get(0);
-    } catch (NameResolutionException e) {
-      throw new Abort(ResultCode.Temperror, e.getMessage());
     } catch (NameNotFound e) {
       throw new Abort(ResultCode.None, "No SPF record found for: " + domain);
+    } catch (InvalidName e) {
+      throw new Abort(ResultCode.None, e.getMessage());
+    } catch (DnsFail e) {
+      throw new Abort(ResultCode.Temperror, e.getMessage());
     }
   }
 
@@ -171,20 +185,30 @@ public class SpfUtilImp implements SpfUtil {
    * @param domain
    * @return null if not validated
    * @throws NameNotFound
-   * @throws NameResolutionException
+   * @throws DnsFail
    */
   @Override
   public String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
-      throws NameResolutionException, NameNotFound, Abort {
+      throws DnsFail, Abort {
     String ptrName = ptrName(ip);
-    String[] results = getNameResolver().resolvePtrRecords(ptrName);
-    if (results == null || results.length == 0) {
+    List<String> results = null;
+    try {
+      results = getNameResolver().resolvePtrRecords(ptrName);
+    } catch (NameNotFound e) {
+      // Do nothing -- leave results null
+    }
+    if (results == null || results.isEmpty()) {
+      incVoidLookupCounter();
       return null;
     }
     String match = null;
     Set<String> subdomains = new HashSet<>();
     Set<String> fallbacks = new HashSet<>();
+    int i = 0;
     for (String result : results) {
+      if (++i > 10) {
+        break;
+      }
       if (result.equalsIgnoreCase(domain)) {
         match = result;
       } else if (result.endsWith(domain)) {
@@ -193,24 +217,28 @@ public class SpfUtilImp implements SpfUtil {
         fallbacks.add(result);
       }
     }
-    if (match != null && nameHasIp(match, ip)) {
-      return match;
+    try {
+      if (match != null && nameHasIp(match, ip)) {
+        return match;
+      }
+      match = subdomains.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
+      if (match != null) {
+        return match;
+      }
+      if (requireMatch) {
+        return null;
+      }
+      return fallbacks.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
+    } catch (RuntimeAbort e) {
+      throw e.getAbort();
     }
-    match = subdomains.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
-    if (match != null) {
-      return match;
-    }
-    if (requireMatch) {
-      return null;
-    }
-    return fallbacks.stream().filter(s -> nameHasIp(s, ip)).findAny().orElse(null);
   }
 
-  private boolean nameHasIp(String name, InetAddress ip) {
+  private boolean nameHasIp(String name, InetAddress ip) throws RuntimeAbort {
     try {
       List<InetAddress> ips = getIpsByHostname(name, ip instanceof Inet4Address);
       return ips.stream().anyMatch(i -> i.equals(ip));
-    } catch (NameResolutionException e) {
+    } catch (RuntimeDnsFail e) {
       // If a DNS error occurs while doing an A RR lookup,
       // then that domain name is skipped and the search continues.
       return false;
@@ -224,51 +252,65 @@ public class SpfUtilImp implements SpfUtil {
     return lookupLimit - lookupsUsed;
   }
 
+  public int incVoidLookupCounter() throws Abort {
+    if (++voidLookupsUsed > voidLookupLimit) {
+      throw new Abort(ResultCode.Permerror, "Maximum DNS void lookups exceeded.");
+    }
+    return voidLookupLimit - voidLookupsUsed;
+  }
+
   @Override
-  public List<InetAddress> getIpsByMxName(String name, boolean ip4)
-      throws NameResolutionException, Abort {
-    List<String> names;
+  public List<InetAddress> getIpsByMxName(String name, boolean ip4) throws DnsFail, Abort {
+    List<String> names = null;
     try {
       names = getNameResolver().resolveMXRecords(name);
     } catch (NameNotFound e) {
+      // Do nothing
+    }
+    if (names == null || names.isEmpty()) {
+      incVoidLookupCounter();
       return Collections.emptyList();
     }
 
     Set<String> nameSet = new HashSet<>(names);
-    if (nameSet.size() > 10) {
+    if (nameSet.size() > lookupLimit) {
       throw new Abort(ResultCode.Permerror, "More than 10 MX records for " + name);
     }
     try {
       return names.stream()
-          .flatMap(
-              (n) -> {
-                try {
-                  return getIpsByHostname(n, ip4).stream();
-                } catch (NameResolutionException e) {
-                  throw new RuntimeException(e);
-                }
-              })
+          .flatMap(n -> getIpsByHostname(n, ip4).stream())
           .distinct()
           .collect(Collectors.toList());
-    } catch (RuntimeException e) {
-      if (e.getCause() != null && e.getCause() instanceof NameResolutionException) {
-        throw (NameResolutionException) e.getCause();
-      }
-      throw e;
+    } catch (RuntimeDnsFail e) {
+      throw e.getDnsFail();
+    } catch (RuntimeAbort e) {
+      throw e.getAbort();
     }
   }
 
   public List<InetAddress> getIpsByHostname(String name, boolean ip4)
-      throws NameResolutionException {
+      throws RuntimeDnsFail, RuntimeAbort {
+    List<InetAddress> rv = null;
     try {
       if (ip4) {
-        return getNameResolver().resolveARecords(name);
+        rv = getNameResolver().resolveARecords(name);
       } else {
-        return getNameResolver().resolveAAAARecords(name);
+        rv = getNameResolver().resolveAAAARecords(name);
       }
     } catch (NameNotFound e) {
+      // Do nothing
+    } catch (DnsFail e) {
+      throw new RuntimeDnsFail(e);
+    }
+    if (rv == null || rv.isEmpty()) {
+      try {
+        incVoidLookupCounter();
+      } catch (Abort e) {
+        throw new RuntimeAbort(e);
+      }
       return Collections.emptyList();
     }
+    return rv;
   }
 
   private static final int[] MASKS = {
@@ -311,7 +353,17 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   @Override
-  public List<String> resolveTxtRecords(String name) throws NameResolutionException, NameNotFound {
-    return getNameResolver().resolveTxtRecords(name);
+  public List<String> resolveTxtRecords(String name) throws DnsFail, Abort {
+    List<String> rv = null;
+    try {
+      rv = getNameResolver().resolveTxtRecords(name);
+    } catch (NameNotFound e) {
+      // Do nothing
+    }
+    if (rv == null || rv.isEmpty()) {
+      incVoidLookupCounter();
+      return Collections.emptyList();
+    }
+    return rv;
   }
 }

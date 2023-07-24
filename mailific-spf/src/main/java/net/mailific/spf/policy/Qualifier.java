@@ -23,8 +23,8 @@ import net.mailific.spf.ResultCode;
 public enum Qualifier {
   PASS("+", ResultCode.Pass),
   FAIL("-", ResultCode.Fail),
-  SOFT_FAIL("?", ResultCode.Softfail),
-  NEUTRAL("~", ResultCode.Neutral);
+  SOFT_FAIL("~", ResultCode.Softfail),
+  NEUTRAL("?", ResultCode.Neutral);
 
   private final String symbol;
   private final ResultCode resultCode;
@@ -45,9 +45,9 @@ public enum Qualifier {
       case "-":
         return FAIL;
       case "?":
-        return SOFT_FAIL;
-      case "~":
         return NEUTRAL;
+      case "~":
+        return SOFT_FAIL;
       default:
         throw new IllegalArgumentException("No such qualifier: " + s);
     }
