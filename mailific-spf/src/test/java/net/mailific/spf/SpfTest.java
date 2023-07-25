@@ -21,6 +21,7 @@ package net.mailific.spf;
 import static org.junit.Assert.assertEquals;
 
 import java.net.InetAddress;
+import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.dns.InvalidName;
 import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.TempDnsFail;
@@ -457,7 +458,8 @@ public class SpfTest {
     assertEquals(ResultCode.Fail, result.getCode());
   }
 
-  // 4.6.4
+  // 4.6.4, 5.5 If [limit is] exceeded, processing is terminated and
+  // the mechanism does not match.
   @Test
   public void lookupLimit_11_ptrs_hit() {
     dns.ptr("4.3.2.1.in-addr.arpa", "baz1.quux")
@@ -641,5 +643,305 @@ public class SpfTest {
         .aaaa("mail.baz.com", ip6);
     Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void ptr_ip4() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all").ptr("4.3.2.1.in-addr.arpa", "foo.com").a("foo.com", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void ptr_ip6() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all")
+        .ptr("f.3.d.c.b.a.0.9.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.7.6.5.4.3.2.1.ip6.arpa", "foo.com")
+        .aaaa("foo.com", ip6);
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  ////////////////
+  // DNS Errors //
+  ////////////////
+
+  @Test
+  public void include_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~include:bar.com -all")
+        .txt("bar.com", new DnsFail("Some DNS error"));
+
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void a_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~a:bar.com -all").a("bar.com", new DnsFail("Some DNS error"));
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void exists_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~exists:bar.com -all").a("bar.com", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void mx_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~mx:bar.com -all").mx("bar.com", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void mx_subquery_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~mx:bar.com -all")
+        .mx("bar.com", "mail.bar.com")
+        .a("mail.bar.com", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  // 5.5  DNS error during PTR lookup = no match
+  @Test
+  public void ptr_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all")
+        .ptr("4.3.2.1.in-addr.arpa", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  // 5.5 DNS error during A subquery ... continue
+  @Test
+  public void ptr_subquery_dnsError() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all")
+        .ptr("4.3.2.1.in-addr.arpa", "x.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "y.foo.com")
+        .a("x.foo.com", new DnsFail("Some DNS error"))
+        .a("y.foo.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  // 5 if the DNS server returns an error ... the topmost check_host()
+  // returns "temperror".
+  @Test
+  public void dnsErrorBubblesUp() {
+    dns.txt("foo.com", "v=spf1 include:foo1.com -all")
+        .txt("foo1.com", "v=spf1 include:foo2.com -all")
+        .txt("foo2.com", "v=spf1 ip4:4.3.2.1 redirect=foo3.com")
+        .txt("foo3.com", "v=spf1 a:quux.com -all")
+        .a("quux.com", new DnsFail("Some DNS error"));
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  // 5.1 -- mechanisms after all never tested
+  @Test
+  public void mechanismsAfterAllNeverTested() {
+    dns.txt("foo.com", "v=spf1 ~all +a:bar.com").a("bar.com", new RuntimeException("boom"));
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  // 5.1
+  @Test
+  public void redirectIgnoredIfAllPresent() {
+    dns.txt("foo.com", "v=spf1 redirect=bar.com -all").txt("bar.com", "v=spf1 +ip4:1.2.3.4");
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  /////////////////
+  // 5.2 Include //
+  /////////////////
+
+  @Test
+  public void include_domainSpecExpanded() {
+    dns.txt("foo.com", "v=spf1 ~include:bar.%{d} -all").txt("bar.foo.com", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void include_domainSpecBecomesDomain() {
+    dns.txt("foo.com", "v=spf1 ~include:bar.com -all")
+        .txt("bar.com", "v=spf1 a:%{dr} -all")
+        .a("com.bar", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void include_senderRemainsSame() {
+    dns.txt("foo.com", "v=spf1 ~include:bar.com -all")
+        .txt("bar.com", "v=spf1 a:%{o}.%{l} -all")
+        .a("foo.com.sender", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  // Also tests that included pass is a match
+  @Test
+  public void include_defaultResult() {
+    dns.txt("foo.com", "v=spf1 include:bar.com -all").txt("bar.com", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void include_resultIsQualifierNotIncludedResult() {
+    dns.txt("foo.com", "v=spf1 -include:bar.com +all").txt("bar.com", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  @Test
+  public void include_failIsNoMatch() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all").txt("bar.com", "v=spf1 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void include_softfailIsNoMatch() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all").txt("bar.com", "v=spf1 ~all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void include_neutralIsNoMatch() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all").txt("bar.com", "v=spf1 ?all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void include_includedTemperrorIsTemperror() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all")
+        .txt("bar.com", "v=spf1 a:baz.com +all")
+        .a("baz.com", new DnsFail("Some DNS error"));
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void include_includedPermerrorIsPermerror() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all")
+        .txt("bar.com", "v=spf1 include:baz.com +all")
+        .txt("baz.com", "v=spf1 bad syntax.");
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void include_includedNoneIsPermerror() {
+    dns.txt("foo.com", "v=spf1 +include:bar.com ~all")
+        .txt("bar.com", "v=spf1 include:baz.com +all");
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  ///////////
+  // 5.3 a //
+  ///////////
+
+  @Test
+  public void multipleARecords() {
+    dns.txt("foo.com", "v=spf1 a -all")
+        .a("foo.com", "1.1.1.1")
+        .a("foo.com", ip)
+        .a("foo.com", "5.5.5.5");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void multipleAAAARecords() {
+    dns.txt("foo.com", "v=spf1 a -all")
+        .aaaa("foo.com", "ab:cd::ef:12")
+        .aaaa("foo.com", ip6)
+        .aaaa("foo.com", "fedc:ba98::7654:3210");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  ////////////
+  // 5.4 MX //
+  ////////////
+  @Test
+  public void mxWithMultipleARecords() {
+    dns.txt("foo.com", "v=spf1 mx -all")
+        .mx("foo.com", "mail.foo.com")
+        .a("mail.foo.com", "1.1.1.1")
+        .a("mail.foo.com", ip)
+        .a("mail.foo.com", "5.5.5.5");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void mxNoImplicitLookup() {
+    dns.txt("foo.com", "v=spf1 mx:bar.com -all").a("bar.com", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  // 5.6
+  @Test
+  public void ip4WithIp6Addr() {
+    dns.txt("foo.com", "v=spf1 ip4:abcd::1234 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void ip6WithIp4Addr() {
+    dns.txt("foo.com", "v=spf1 ip6:1.2.3.4 -all");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void ip4IpIp6Mechanism() {
+    dns.txt("foo.com", "v=spf1 ip6:abcd::1234 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  @Test
+  public void noOmittedQuads() {
+    dns.txt("foo.com", "v=spf1 ip4:10.10.100 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  // 5.7 - exists
+  @Test
+  public void aLookupEvenWhenIpIsIp6() {
+    dns.txt("foo.com", "v=spf1 exists:bar.baz -all").a("bar.baz", "127.0.0.1");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  // 6
+  @Test
+  public void expBeforeRedirect() {
+    dns.txt("foo.com", "v=spf1 exp=bar.com redirect=baz.com")
+        .txt("bar.com", "Because I said so.")
+        .txt("baz.com", "v=spf1 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Because I said so.", result.getExplanation());
   }
 }

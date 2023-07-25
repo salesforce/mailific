@@ -310,8 +310,6 @@ public class SpfUtilImp implements SpfUtil {
       }
     } catch (NameNotFound e) {
       // Do nothing
-    } catch (DnsFail e) {
-      throw new RuntimeDnsFail(e);
     }
     if (rv == null || rv.isEmpty()) {
       incVoidLookupCounter();
