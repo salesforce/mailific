@@ -54,7 +54,7 @@ public class Explanation extends Modifier implements Expandable {
       SpfPolicy parser =
           new SpfPolicy(
               new ByteArrayInputStream(records.get(0).getBytes(StandardCharsets.US_ASCII)),
-              "US_ASCII");
+              "US-ASCII");
       MacroString ms = parser.explainString();
       return ms.expand(spf, ip, domain, sender, ehloParam);
     } catch (DnsFail | ParseException | PolicySyntaxException e) {

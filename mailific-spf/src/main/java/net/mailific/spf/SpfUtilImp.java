@@ -73,24 +73,32 @@ public class SpfUtilImp implements SpfUtil {
           new SpfPolicy(
               new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
       Policy policy = parser.policy();
+      Result result = null;
       for (Directive directive : policy.getDirectives()) {
-        Result result = directive.evaluate(this, ip, domain, sender, ehloParam);
+        result = directive.evaluate(this, ip, domain, sender, ehloParam);
         if (result != null) {
-          if (result.getCode() == ResultCode.Fail && policy.getExplanation() != null) {
-            String explanation =
-                policy.getExplanation().expand(this, ip, domain, sender, ehloParam);
-            result = new Result(result.getCode(), explanation);
-          }
-          return result;
+          break;
         }
       }
-      if (policy.getRedirect() != null) {
+      if (result == null && policy.getRedirect() != null) {
         incLookupCounter();
         String redirectDomain =
             policy.getRedirect().getDomainSpec().expand(this, ip, domain, sender, ehloParam);
-        return checkHost(ip, redirectDomain, sender, ehloParam);
+        result = checkHost(ip, redirectDomain, sender, ehloParam);
+        if (result.getCode() == ResultCode.None) {
+          result = new Result(ResultCode.Permerror, result.getExplanation());
+        }
       }
-      return new Result(ResultCode.Neutral, "No directives matched.");
+      if (result != null
+          && result.getCode() == ResultCode.Fail
+          && policy.getExplanation() != null) {
+        String explanation = policy.getExplanation().expand(this, ip, domain, sender, ehloParam);
+        result = new Result(result.getCode(), explanation);
+      }
+      if (result == null) {
+        result = new Result(ResultCode.Neutral, "No directives matched.");
+      }
+      return result;
     } catch (ParseException | PolicySyntaxException e) {
       return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {

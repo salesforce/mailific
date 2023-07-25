@@ -944,4 +944,104 @@ public class SpfTest {
     assertEquals(ResultCode.Fail, result.getCode());
     assertEquals("Because I said so.", result.getExplanation());
   }
+
+  @Test
+  public void redirectBeforeExp() {
+    dns.txt("foo.com", "v=spf1 redirect=baz.com exp=bar.com")
+        .txt("bar.com", "Because I said so.")
+        .txt("baz.com", "v=spf1 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Because I said so.", result.getExplanation());
+  }
+
+  @Test
+  public void modifiersMixedIn() {
+    dns.txt("foo.com", "v=spf1 ip4:8.8.8.8 redirect=baz.com ip4:2.4.8.3 exp=bar.com ip4:9.9.9.9")
+        .txt("bar.com", "Because I said so.")
+        .txt("baz.com", "v=spf1 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Because I said so.", result.getExplanation());
+  }
+
+  @Test
+  public void twoExps() {
+    dns.txt("foo.com", "v=spf1 exp=bar.com exp=baz.com -all")
+        .txt("bar.com", "Because I said so.")
+        .txt("baz.com", "Two exps not allowed");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void twoRedirects() {
+    dns.txt("foo.com", "v=spf1 redirect=bar.com redirect=baz.com -all")
+        .txt("bar.com", "v=spf1 ?all")
+        .txt("baz.com", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void unknownModifiers() {
+    dns.txt("foo.com", "v=spf1 a9-_.=bar%{l} ~all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void unknownModifiersRepeated() {
+    dns.txt("foo.com", "v=spf1 a9=bar a9=bar ip4:1.2.3.4 ~all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  // 6.1
+  @Test
+  public void redirectStringBecomesDomain() {
+    dns.txt("foo.com", "v=spf1 redirect=bar.com")
+        .txt("bar.com", "v=spf1 a:%{i}.%{o}.%{l}.%{d} -all")
+        .a("1.2.3.4.foo.com.sender.bar.com", "1.2.3.4")
+        .a("1.2.3.4.foo.com.sender.bar.foo", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void redirectNoRecordPermError() {
+    dns.txt("foo.com", "v=spf1 redirect=bar.com");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void stackedRedirect() {
+    dns.txt("foo.com", "v=spf1 redirect=bar.com")
+        .txt("bar.com", "v=spf1 redirect=baz.com")
+        .txt("baz.com", "v=spf1 ?all");
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Neutral, result.getCode());
+  }
+
+  // 6.2
+  @Test
+  public void expMacroExpanded() {
+    dns.txt("foo.com", "v=spf1 exp=%{l}.com -all").txt("sender.com", "Because I said so.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Because I said so.", result.getExplanation());
+  }
+
+  @Test
+  public void expDnsError() {
+    dns.txt("foo.com", "v=spf1 exp=%{l}.com -all")
+        .txt("sender.com", new DnsFail("something happened"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    //    assertEquals("Because I said so.", result.getExplanation());
+  }
 }
