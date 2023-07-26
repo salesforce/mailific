@@ -56,7 +56,7 @@ public class Directive {
       spf.incLookupCounter();
     }
     if (mechanism.matches(spf, ip, domain, sender, ehloParam)) {
-      return new Result(qualifier.getResultCode(), "matched " + toString());
+      return new Result(qualifier.getResultCode(), String.format("Matched %s.", toString()));
     }
     return null;
   }

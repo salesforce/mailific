@@ -74,6 +74,8 @@ public abstract class Macro implements Expandable {
         return new Helo(rightParts, reverse, delimiter, escape);
       case "r":
         return new Receiver(rightParts, reverse, delimiter, escape);
+      case "c":
+        return new ReadableIp(rightParts, reverse, delimiter, escape);
       case "%":
       case "_":
       case "-":

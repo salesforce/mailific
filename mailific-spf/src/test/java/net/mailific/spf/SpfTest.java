@@ -935,6 +935,9 @@ public class SpfTest {
   }
 
   // 6
+
+  // when executing a "redirect" modifier, an "exp" modifier from the original domain MUST NOT be
+  // used
   @Test
   public void expBeforeRedirect() {
     dns.txt("foo.com", "v=spf1 exp=bar.com redirect=baz.com")
@@ -942,7 +945,7 @@ public class SpfTest {
         .txt("baz.com", "v=spf1 -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    assertEquals("Because I said so.", result.getExplanation());
+    assertEquals("Matched -all.", result.getExplanation());
   }
 
   @Test
@@ -952,7 +955,7 @@ public class SpfTest {
         .txt("baz.com", "v=spf1 -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    assertEquals("Because I said so.", result.getExplanation());
+    assertEquals("Matched -all.", result.getExplanation());
   }
 
   @Test
@@ -962,7 +965,7 @@ public class SpfTest {
         .txt("baz.com", "v=spf1 -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    assertEquals("Because I said so.", result.getExplanation());
+    assertEquals("Matched -all.", result.getExplanation());
   }
 
   @Test
@@ -1033,7 +1036,7 @@ public class SpfTest {
     dns.txt("foo.com", "v=spf1 exp=%{l}.com -all").txt("sender.com", "Because I said so.");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    assertEquals("Because I said so.", result.getExplanation());
+    assertEquals("foo.com explained: Because I said so.", result.getExplanation());
   }
 
   @Test
@@ -1042,6 +1045,175 @@ public class SpfTest {
         .txt("sender.com", new DnsFail("something happened"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    //    assertEquals("Because I said so.", result.getExplanation());
+    assertEquals("Matched -all.", result.getExplanation());
+  }
+
+  @Test
+  public void expResultExpanded() {
+    dns.txt("foo.com", "v=spf1 exp=bar.com -all").txt("bar.com", "No such mailbox %{l} at %{d}.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("foo.com explained: No such mailbox sender at foo.com.", result.getExplanation());
+  }
+
+  // 6.2
+  @Test
+  public void includedExpNotUsed() {
+    dns.txt("foo.com", "v=spf1 -include:baz.com -all")
+        .txt("baz.com", "v=spf1 exp=bar.com -all")
+        .txt("bar.com", "Nope.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Matched -all.", result.getExplanation());
+  }
+
+  @Test
+  public void redirectWithExp() {
+    dns.txt("foo.com", "v=spf1 exp=bar.com redirect=baz.com")
+        .txt("baz.com", "v=spf1 -all")
+        .txt("bar.com", "Nope.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Matched -all.", result.getExplanation());
+  }
+
+  // TODO syntax tests based on bnf and comments in bnf
+
+  // 7.2
+  @Test
+  public void cNotAllowedInInclude() {
+    dns.txt("foo.com", "v=spf1 include:%{c}.foo.com -all").txt("1.2.3.4.foo.com", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInA() {
+    dns.txt("foo.com", "v=spf1 a:%{c}.foo.com -all").a("1.2.3.4.foo.com", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInMx() {
+    dns.txt("foo.com", "v=spf1 mx:%{c}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInPtr() {
+    dns.txt("foo.com", "v=spf1 ptr:%{c}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInExists() {
+    dns.txt("foo.com", "v=spf1 exists:%{c}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInRedirect() {
+    dns.txt("foo.com", "v=spf1 redirect=%{c}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cNotAllowedInExpModifier() {
+    dns.txt("foo.com", "v=spf1 exp=%{c}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void cAllowedInExpText() {
+    dns.txt("foo.com", "v=spf1 exp=exp.foo.com -all").txt("exp.foo.com", "%{c} says no.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("foo.com explained: 1.2.3.4 says no.", result.getExplanation());
+  }
+
+  @Test
+  public void cIpv6() {
+    dns.txt("foo.com", "v=spf1 exp=exp.foo.com -all").txt("exp.foo.com", "%{c} says no.");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals(
+        "foo.com explained: 1234:5678:0:0:0:0:90ab:cd3f says no.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInInclude() {
+    dns.txt("foo.com", "v=spf1 include:%{r}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInA() {
+    dns.txt("foo.com", "v=spf1 a:%{r} -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInMx() {
+    dns.txt("foo.com", "v=spf1 mx:%{r} -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInPtr() {
+    dns.txt("foo.com", "v=spf1 ptr:%{r} -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInExists() {
+    dns.txt("foo.com", "v=spf1 exists:%{r} -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInRedirect() {
+    dns.txt("foo.com", "v=spf1 redirect=%{r}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rNotAllowedInExpModifier() {
+    dns.txt("foo.com", "v=spf1 exp=%{r}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void rAllowedInExpText() {
+    dns.txt("foo.com", "v=spf1 exp=exp.foo.com -all").txt("exp.foo.com", "%{r} says no.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    //    assertEquals("foo.com explained: 1.2.3.4 says no.", result.getExplanation());
   }
 }

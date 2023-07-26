@@ -88,12 +88,14 @@ public class SpfUtilImp implements SpfUtil {
         if (result.getCode() == ResultCode.None) {
           result = new Result(ResultCode.Permerror, result.getExplanation());
         }
-      }
-      if (result != null
+      } else if (result != null
           && result.getCode() == ResultCode.Fail
           && policy.getExplanation() != null) {
         String explanation = policy.getExplanation().expand(this, ip, domain, sender, ehloParam);
-        result = new Result(result.getCode(), explanation);
+        if (explanation != null) {
+          explanation = String.format("%s explained: %s", domain, explanation);
+          result = new Result(result.getCode(), explanation);
+        }
       }
       if (result == null) {
         result = new Result(ResultCode.Neutral, "No directives matched.");
