@@ -76,6 +76,8 @@ public abstract class Macro implements Expandable {
         return new Receiver(rightParts, reverse, delimiter, escape);
       case "c":
         return new ReadableIp(rightParts, reverse, delimiter, escape);
+      case "t":
+        return new Timestamp(rightParts, reverse, delimiter, escape);
       case "%":
       case "_":
       case "-":

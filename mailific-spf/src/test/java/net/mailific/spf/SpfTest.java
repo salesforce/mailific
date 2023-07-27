@@ -18,6 +18,8 @@
 
 package net.mailific.spf;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.junit.Assert.assertEquals;
 
 import java.net.InetAddress;
@@ -1215,5 +1217,126 @@ public class SpfTest {
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
     assertEquals("foo.com explained: rcpt.com says no.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInInclude() {
+    dns.txt("foo.com", "v=spf1 include:t%{t}.foo.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInA() {
+    dns.txt("foo.com", "v=spf1 a:t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInMx() {
+    dns.txt("foo.com", "v=spf1 mx:t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInPtr() {
+    dns.txt("foo.com", "v=spf1 ptr:t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInExists() {
+    dns.txt("foo.com", "v=spf1 exists:t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInRedirect() {
+    dns.txt("foo.com", "v=spf1 redirect=t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tNotAllowedInExpModifier() {
+    dns.txt("foo.com", "v=spf1 exp=t%{t}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+    assertEquals("Invalid spf record syntax.", result.getExplanation());
+  }
+
+  @Test
+  public void tAllowedInExpText() {
+    dns.txt("foo.com", "v=spf1 exp=exp.foo.com -all").txt("exp.foo.com", "not at %{t}.");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertThat(result.getExplanation(), matchesPattern("foo.com explained: not at [0-9]+[.]"));
+  }
+
+  // 7.3
+  @Test
+  public void percentNotFollowedByBrace() {
+    dns.txt("foo.com", "v=spf1 -exists:%(ir).sbl.example.org");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void delimSplitsJoinsWithDots() {
+    dns.txt("foo.com", "v=spf1 exists:%{l+} -all").a("a.b.com", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "a+b+com@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void digitsAlone() {
+    dns.txt("foo.bar.com", "v=spf1 exists:%{d2} -all").a("bar.com", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.bar.com", "sender@foo.bar.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void digitsAndReverse() {
+    dns.txt("foo.bar.com", "v=spf1 exists:%{d2r} -all").a("bar.foo", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.bar.com", "sender@foo.bar.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void digitsReverseAndDelim() {
+    dns.txt("foo.com", "v=spf1 exists:%{l2r-} -all").a("bar.foo", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "foo-bar-com@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void digitsAndDelim() {
+    dns.txt("foo.com", "v=spf1 exists:%{l2-} -all").a("bar.com", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "foo-bar-com@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void reverseAlone() {
+    dns.txt("foo.com", "v=spf1 exists:%{dr} -all").a("com.foo", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void reverseAndDelim() {
+    dns.txt("foo.com", "v=spf1 exists:%{lr-} -all").a("com.foo.bar", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "bar-foo-com@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
   }
 }
