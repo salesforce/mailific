@@ -45,7 +45,7 @@ public class SpfTest {
   @Before
   public void setup() throws Exception {
     mocks = MockitoAnnotations.openMocks(this);
-    it = new SpfImp(dns, new Settings());
+    it = new SpfImp(dns, new Settings(10, 2, "rcpt.com", "%{d} explained: "));
     ip = InetAddress.getByName("1.2.3.4");
     ip2 = InetAddress.getByName("10.20.30.40");
     ip6 = InetAddress.getByName("1234:5678::90ab:cd3f");
@@ -1214,6 +1214,6 @@ public class SpfTest {
     dns.txt("foo.com", "v=spf1 exp=exp.foo.com -all").txt("exp.foo.com", "%{r} says no.");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
-    //    assertEquals("foo.com explained: 1.2.3.4 says no.", result.getExplanation());
+    assertEquals("foo.com explained: rcpt.com says no.", result.getExplanation());
   }
 }
