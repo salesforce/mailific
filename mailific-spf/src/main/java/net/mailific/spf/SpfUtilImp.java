@@ -46,32 +46,24 @@ public class SpfUtilImp implements SpfUtil {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
   };
 
-  private int lookupLimit = 10;
   private int lookupsUsed = 0;
-
-  private int voidLookupLimit = 2;
   private int voidLookupsUsed = 0;
-
   private NameResolver resolver;
+  private Settings settings;
 
-  public SpfUtilImp(NameResolver resolver) {
+  public SpfUtilImp(NameResolver resolver, Settings settings) {
     this.resolver = resolver;
-  }
-
-  public SpfUtilImp(NameResolver resolver, int lookupLimit, int voidLookupLimit) {
-    this(resolver);
-    this.lookupLimit = lookupLimit;
-    this.voidLookupLimit = voidLookupLimit;
+    this.settings = settings;
   }
 
   public Result checkHost(InetAddress ip, String domain, String sender, String ehloParam) {
-
     try {
       verifyDomain(domain);
       String spfRecord = lookupSpfRecord(domain);
       SpfPolicy parser =
           new SpfPolicy(
               new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
+      parser.setExplainPrefix(settings.getExplainPrefix());
       Policy policy = parser.policy();
       Result result = null;
       for (Directive directive : policy.getDirectives()) {
@@ -93,7 +85,6 @@ public class SpfUtilImp implements SpfUtil {
           && policy.getExplanation() != null) {
         String explanation = policy.getExplanation().expand(this, ip, domain, sender, ehloParam);
         if (explanation != null) {
-          explanation = String.format("%s explained: %s", domain, explanation);
           result = new Result(result.getCode(), explanation);
         }
       }
@@ -256,18 +247,18 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   public int incLookupCounter() throws Abort {
-    if (++lookupsUsed > lookupLimit) {
+    if (++lookupsUsed > settings.getLookupLimit()) {
       throw new Abort(ResultCode.Permerror, "Maximum total DNS lookups exceeded.");
     }
-    return lookupLimit - lookupsUsed;
+    return settings.getLookupLimit() - lookupsUsed;
   }
 
   public int incVoidLookupCounter() throws Abort {
     System.out.println("Incing vlc from " + voidLookupsUsed);
-    if (++voidLookupsUsed > voidLookupLimit) {
+    if (++voidLookupsUsed > settings.getVoidLookupLimit()) {
       throw new Abort(ResultCode.Permerror, "Maximum DNS void lookups exceeded.");
     }
-    return voidLookupLimit - voidLookupsUsed;
+    return settings.getVoidLookupLimit() - voidLookupsUsed;
   }
 
   @Override
@@ -284,7 +275,7 @@ public class SpfUtilImp implements SpfUtil {
     }
 
     Set<String> nameSet = new HashSet<>(names);
-    if (nameSet.size() > lookupLimit) {
+    if (nameSet.size() > settings.getLookupLimit()) {
       throw new Abort(ResultCode.Permerror, "More than 10 MX records for " + name);
     }
     try {
@@ -380,5 +371,10 @@ public class SpfUtilImp implements SpfUtil {
       return Collections.emptyList();
     }
     return rv;
+  }
+
+  @Override
+  public String getHostDomain() {
+    return settings.getHostDomain();
   }
 }

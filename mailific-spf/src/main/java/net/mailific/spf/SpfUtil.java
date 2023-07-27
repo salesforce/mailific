@@ -42,4 +42,6 @@ public interface SpfUtil extends Spf {
   List<InetAddress> getIpsByMxName(String name, boolean ip4) throws DnsFail, Abort;
 
   boolean cidrMatch(InetAddress ip1, InetAddress ip2, int bits);
+
+  String getHostDomain();
 }

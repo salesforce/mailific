@@ -33,9 +33,11 @@ import net.mailific.spf.parser.SpfPolicy;
 public class Explanation extends Modifier implements Expandable {
 
   private final MacroString domainSpec;
+  private String prefix;
 
-  public Explanation(MacroString domainSpec) {
+  public Explanation(MacroString domainSpec, String prefix) {
     this.domainSpec = domainSpec;
+    this.prefix = prefix;
   }
 
   public String toString() {
@@ -51,10 +53,13 @@ public class Explanation extends Modifier implements Expandable {
       if (records.size() != 1) {
         return null;
       }
+      String unparsed = records.get(0);
+      if (prefix != null) {
+        unparsed = prefix + unparsed;
+      }
       SpfPolicy parser =
           new SpfPolicy(
-              new ByteArrayInputStream(records.get(0).getBytes(StandardCharsets.US_ASCII)),
-              "US-ASCII");
+              new ByteArrayInputStream(unparsed.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
       MacroString ms = parser.explainString();
       return ms.expand(spf, ip, domain, sender, ehloParam);
     } catch (DnsFail | ParseException | PolicySyntaxException e) {

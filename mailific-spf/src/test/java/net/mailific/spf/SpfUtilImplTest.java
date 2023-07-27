@@ -38,7 +38,7 @@ public class SpfUtilImplTest {
   @Before
   public void setup() throws Exception {
     mocks = MockitoAnnotations.openMocks(this);
-    it = new SpfUtilImp(resolver);
+    it = new SpfUtilImp(resolver, new Settings());
   }
 
   @After

@@ -32,6 +32,10 @@ public class MacroString implements Expandable {
     tokens.add(e);
   }
 
+  public void add(String s) {
+    tokens.add(new Literal(s));
+  }
+
   public boolean isEmpty() {
     return tokens.isEmpty();
   }

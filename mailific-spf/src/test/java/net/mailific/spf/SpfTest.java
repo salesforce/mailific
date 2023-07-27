@@ -45,7 +45,7 @@ public class SpfTest {
   @Before
   public void setup() throws Exception {
     mocks = MockitoAnnotations.openMocks(this);
-    it = new SpfImp(dns, 10, 2);
+    it = new SpfImp(dns, new Settings());
     ip = InetAddress.getByName("1.2.3.4");
     ip2 = InetAddress.getByName("10.20.30.40");
     ip6 = InetAddress.getByName("1234:5678::90ab:cd3f");

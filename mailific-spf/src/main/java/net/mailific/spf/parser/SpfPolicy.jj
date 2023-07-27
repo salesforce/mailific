@@ -38,19 +38,21 @@ import net.mailific.spf.macro.*;
 @SuppressWarnings("unused")
 public class SpfPolicy {
 
+    private String explainPrefix = null;
+
     public static void main(String args []) throws ParseException, PolicySyntaxException
     {
         try {
             SpfPolicy parser = new SpfPolicy(System.in);
-//            Policy policy = parser.policy();
-  //          System.out.println(policy.toString());
-
-            MacroString ms = parser.explainString();
-            System.out.println(ms.toString());
-
+            Policy policy = parser.policy();
+            System.out.println(policy.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void setExplainPrefix(String explainPrefix) {
+      this.explainPrefix = explainPrefix;
     }
 
 }
@@ -442,7 +444,7 @@ Modifier modifier() throws PolicySyntaxException :
       |
       ( < EXPLANATION > ms = domainSpec()
         {
-            return new Explanation(ms);
+            return new Explanation(ms, explainPrefix);
         }
         )
       |

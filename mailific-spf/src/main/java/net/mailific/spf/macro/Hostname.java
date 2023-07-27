@@ -16,28 +16,22 @@
  * limitations under the License.
  */
 
-package net.mailific.spf;
+package net.mailific.spf.macro;
 
 import java.net.InetAddress;
-import net.mailific.spf.dns.NameResolver;
+import net.mailific.spf.SpfUtil;
+import net.mailific.spf.policy.PolicySyntaxException;
 
-public class SpfImp implements Spf {
+public class Hostname extends Macro {
 
-  private NameResolver resolver;
-  private Settings settings;
-
-  public SpfImp(NameResolver resolver, Settings settings) {
-    this.resolver = resolver;
-    this.settings = settings;
+  protected Hostname(int rightParts, boolean reverse, String delimiter, boolean escape)
+      throws PolicySyntaxException {
+    super(rightParts, reverse, delimiter, escape);
   }
 
-  // TODO: overload for sender/domain
-
   @Override
-  public Result checkHost(InetAddress ip, String domain, String sender, String ehloParam) {
-    if (sender == null || sender.isBlank() || sender.strip().equals("<>")) {
-      sender = "postmaster@" + domain;
-    }
-    return new SpfUtilImp(resolver, settings).checkHost(ip, domain, sender, ehloParam);
+  public String innerExpand(
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
+    return transform(spf.getHostDomain(), getRightParts(), isReverse(), getDelimiter());
   }
 }
