@@ -19,13 +19,18 @@
 package net.mailific.spf.dns;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.naming.Context;
 import javax.naming.InvalidNameException;
 import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.InitialDirContext;
 
@@ -35,8 +40,16 @@ public class JndiResolver implements NameResolver {
 
   private static final String DNSURL = "dns://%s/example.com";
   private static final String[] TXT = {"TXT"};
+  private static final String[] A = {"A"};
+  private static final String[] AAAA = {"AAAA"};
+  private static final String[] MX = {"MX"};
+  private static final String[] PTR = {"PTR"};
 
   private InitialDirContext ic;
+
+  public JndiResolver() {
+    this(null);
+  }
 
   public JndiResolver(List<String> nameServers) {
     Hashtable<Object, Object> env = new Hashtable<>();
@@ -57,37 +70,60 @@ public class JndiResolver implements NameResolver {
 
   @Override
   public List<String> resolveTxtRecords(String name) throws DnsFail {
-    try {
-      Attributes atts = ic.getAttributes(name, TXT);
+    return resolve(name, TXT, String::valueOf);
+  }
 
+  public <T> List<T> resolve(String name, String[] type, Function<Object, T> mapper)
+      throws DnsFail {
+    List<T> rv = new ArrayList<>();
+    try {
+      Attributes atts = ic.getAttributes(name, type);
+      for (NamingEnumeration<? extends Attribute> all = atts.getAll(); all.hasMore(); ) {
+        Attribute att = all.next();
+        for (NamingEnumeration<?> values = att.getAll(); values.hasMore(); ) {
+          rv.add(mapper.apply(values.next()));
+        }
+      }
     } catch (NamingException e) {
       mapToDnsFail(e, name);
     }
-    return null;
+    return rv;
+  }
+
+  private static InetAddress mapFromLookup(Object o) {
+    try {
+      return InetAddress.getByName(String.valueOf(o));
+    } catch (UnknownHostException e) {
+      throw new ShouldNotOccur(String.valueOf(o));
+    }
   }
 
   @Override
   public List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'resolveARecords'");
+    try {
+      return resolve(name, A, JndiResolver::mapFromLookup);
+    } catch (ShouldNotOccur e) {
+      throw new DnsFail("Bad A record: " + e.getMessage());
+    }
   }
 
   @Override
   public List<InetAddress> resolveAAAARecords(String name) throws DnsFail, NameNotFound {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'resolveAAAARecords'");
+    try {
+      return resolve(name, AAAA, JndiResolver::mapFromLookup);
+    } catch (ShouldNotOccur e) {
+      throw new DnsFail("Bad A record: " + e.getMessage());
+    }
   }
 
   @Override
   public List<String> resolveMXRecords(String name) throws DnsFail, NameNotFound {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'resolveMXRecords'");
+    return resolve(name, MX, o -> undot(o).split(" ")[1]);
   }
 
   @Override
   public List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'resolvePtrRecords'");
+    return resolve(name, PTR, JndiResolver::undot);
   }
 
   private void mapToDnsFail(NamingException namingException, String name) throws DnsFail {
@@ -101,5 +137,20 @@ public class JndiResolver implements NameResolver {
       String explanation = String.format("Failure looking up \"%s\": %s", name, e.getMessage());
       throw new TempDnsFail(explanation);
     }
+  }
+
+  private static final class ShouldNotOccur extends RuntimeException {
+
+    public ShouldNotOccur(String name) {
+      super(name);
+    }
+  }
+
+  public static final String undot(Object hostname) {
+    if (hostname == null) {
+      return null;
+    }
+    String s = String.valueOf(hostname);
+    return s.endsWith(".") ? s.substring(0, s.length() - 1) : s;
   }
 }
