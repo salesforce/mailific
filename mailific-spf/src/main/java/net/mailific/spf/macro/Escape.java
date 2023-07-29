@@ -20,20 +20,35 @@ package net.mailific.spf.macro;
 
 import java.net.InetAddress;
 import net.mailific.spf.SpfUtil;
+import net.mailific.spf.policy.PolicySyntaxException;
 
 public class Escape extends Macro {
 
   private final String value;
+  private final String expanded;
 
-  public Escape(String value) {
+  public Escape(String value) throws PolicySyntaxException {
     super(0, false, null, false);
     this.value = value;
+    switch (value) {
+      case "%":
+        expanded = "%";
+        break;
+      case "_":
+        expanded = " ";
+        break;
+      case "-":
+        expanded = "%20";
+        break;
+      default:
+        throw new PolicySyntaxException("Unexpected escape %" + value);
+    }
   }
 
   @Override
   public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    return value;
+    return expanded;
   }
 
   public String toString() {

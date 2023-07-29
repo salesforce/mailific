@@ -37,6 +37,10 @@ public class SpfImp implements Spf {
   public Result checkHost(InetAddress ip, String domain, String sender, String ehloParam) {
     if (sender == null || sender.isBlank() || sender.strip().equals("<>")) {
       sender = "postmaster@" + domain;
+    } else {
+      if (sender.indexOf('@') < 0) {
+        sender = "postmaster@" + sender;
+      }
     }
     return new SpfUtilImp(resolver, settings).checkHost(ip, domain, sender, ehloParam);
   }

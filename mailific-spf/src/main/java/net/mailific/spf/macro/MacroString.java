@@ -50,6 +50,27 @@ public class MacroString implements Expandable {
     return sb.toString();
   }
 
+  public String expandTruncated(
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
+    return truncate(expand(spf, ip, domain, sender, ehloParam));
+  }
+
+  public static String truncate(String domain) {
+    if (domain == null) {
+      return null;
+    }
+    int l = domain.length();
+    int i = -1;
+    while (l > 253) {
+      i = domain.indexOf('.', i);
+      if (i == -1) {
+        return "";
+      }
+      l = domain.length() - (i + 1);
+    }
+    return (i > -1) ? domain.substring(i + 1) : domain;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

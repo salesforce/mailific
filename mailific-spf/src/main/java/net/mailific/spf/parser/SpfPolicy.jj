@@ -25,6 +25,7 @@ options
     debug_token_manager = true;
     */
 
+    ignore_case = true;
 
     static = false;
     output_directory = "../../../../../../../target/generated-sources/javacc/net/mailific/spf/parser";
@@ -314,6 +315,7 @@ Macro macro() throws PolicySyntaxException :
      t = < MACRO_ESCAPED >
      {
          type = t.image.substring(1);
+         return Macro.macro(type, digits, reverse, delimiter);
      }
      |
       < MACRO_EXPAND_START >

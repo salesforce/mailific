@@ -99,13 +99,15 @@ public class SpfUtilImp implements SpfUtil {
     }
   }
 
+  private static boolean hasSpfVersion(String s) {
+    return s != null && s.length() >= 6 && s.substring(0, 6).equalsIgnoreCase("v=spf1");
+  }
+
   public String lookupSpfRecord(String domain) throws Abort {
     try {
       List<String> txtRecords = resolver.resolveTxtRecords(domain);
       txtRecords =
-          txtRecords.stream()
-              .filter(s -> s != null && (s.equals("v=spf1") || s.startsWith("v=spf1 ")))
-              .collect(Collectors.toList());
+          txtRecords.stream().filter(SpfUtilImp::hasSpfVersion).collect(Collectors.toList());
       if (txtRecords.size() < 1) {
         throw new Abort(ResultCode.None, "No SPF record found for: " + domain);
       }
@@ -138,11 +140,11 @@ public class SpfUtilImp implements SpfUtil {
     if (labels.length < 2) {
       throw new Abort(ResultCode.None, "Domain not FQDN: " + domain);
     }
-    for (String label : labels) {
-      if (label.isEmpty()) {
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i].isEmpty() && i != labels.length - 1) {
         throw new Abort(ResultCode.None, "Domain contains 0-length label: " + domain);
       }
-      if (label.length() > 63) {
+      if (labels[i].length() > 63) {
         throw new Abort(ResultCode.None, "Domain label > 63 chars: " + domain);
       }
     }
@@ -254,7 +256,6 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   public int incVoidLookupCounter() throws Abort {
-    System.out.println("Incing vlc from " + voidLookupsUsed);
     if (++voidLookupsUsed > settings.getVoidLookupLimit()) {
       throw new Abort(ResultCode.Permerror, "Maximum DNS void lookups exceeded.");
     }

@@ -70,6 +70,8 @@ public abstract class Macro implements Expandable {
         return new Ip(rightParts, reverse, delimiter, escape);
       case "p":
         return new NameOfIp(rightParts, reverse, delimiter, escape);
+      case "v":
+        return new Arpa(rightParts, reverse, delimiter, escape);
       case "h":
         return new Helo(rightParts, reverse, delimiter, escape);
       case "r":

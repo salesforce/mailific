@@ -18,30 +18,29 @@
 
 package net.mailific.spf.macro;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
-import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.dns.DnsFail;
 
-/** P macro */
-public class NameOfIp extends Macro {
+public class Arpa extends Macro {
 
-  public NameOfIp(int rightParts, boolean reverse, String delimiter, boolean escape) {
+  public Arpa(int rightParts, boolean reverse, String delimiter, boolean escape) {
     super(rightParts, reverse, delimiter, escape);
   }
 
   @Override
   public String innerExpand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
-    try {
-      spf.incLookupCounter();
-      String host = spf.validatedHostForIp(ip, domain, false);
-      if (host == null) {
-        return "unknown";
-      }
-      return transform(host, getRightParts(), isReverse(), getDelimiter());
-    } catch (DnsFail e) {
-      return "unknown";
-    }
+      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
+    String arpa = ip instanceof Inet4Address ? "in-addr" : "ip6";
+    return transform(arpa, getRightParts(), isReverse(), getDelimiter());
+  }
+
+  @Override
+  public String toString() {
+    return "%{v"
+        + (getRightParts() > 0 ? getRightParts() : "")
+        + (isReverse() ? "r" : "")
+        + (getDelimiter() == null ? "" : getDelimiter())
+        + "}";
   }
 }

@@ -1339,4 +1339,307 @@ public class SpfTest {
     Result result = it.checkHost(ip, "foo.com", "bar-foo-com@foo.com", "bar.baz");
     assertEquals(ResultCode.Pass, result.getCode());
   }
+
+  @Test
+  public void multidigits() {
+    String l = "";
+    for (int i = 0; i < 127; i++) {
+      l += SpfUtilImp.HEX[i % 16];
+      l += ".";
+    }
+    dns.txt("foo.com", "v=spf1 exists:%{l128} -all").a(l, "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", l + "@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void multiDelims() {
+    dns.txt("foo.com", "v=spf1 exists:%{l.+} -all").a("foo.bar.baz", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "foo+bar.baz@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void delimsEverywhere() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{l/}");
+    Result result = it.checkHost(ip, "foo.com", "//foo///bar/baz/@foo.com", "bar.baz");
+    assertEquals("foo.com explained: ..foo...bar.baz.", result.getExplanation());
+  }
+
+  @Test
+  public void digitAfterReversal() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{l2r}");
+    Result result = it.checkHost(ip, "foo.com", "a.b.c.d@foo.com", "bar.baz");
+    assertEquals("foo.com explained: b.a", result.getExplanation());
+  }
+
+  @Test
+  public void digitsGTparts() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{l105}");
+    Result result = it.checkHost(ip, "foo.com", "a.b.c.d@foo.com", "bar.baz");
+    assertEquals("foo.com explained: a.b.c.d", result.getExplanation());
+  }
+
+  @Test
+  public void senderMacro() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{s}");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: sender@foo.com", result.getExplanation());
+  }
+
+  //////////////////////
+  // Macro expansions //
+  //////////////////////
+
+  @Test
+  public void senderNoLocalPartSupplied() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{s}");
+    Result result = it.checkHost(ip, "foo.com", "foo.com", "bar.baz");
+    assertEquals("foo.com explained: postmaster@foo.com", result.getExplanation());
+  }
+
+  @Test
+  public void senderNoSenderSupplied() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{s}");
+    Result result = it.checkHost(ip, "foo.com", null, "bar.baz");
+    assertEquals("foo.com explained: postmaster@foo.com", result.getExplanation());
+  }
+
+  @Test
+  public void iMacroIp4() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{i}");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: 1.2.3.4", result.getExplanation());
+  }
+
+  @Test
+  public void iMacroIp6() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{i}");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(
+        "foo.com explained: 1.2.3.4.5.6.7.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.9.0.a.b.c.d.3.f",
+        result.getExplanation());
+  }
+
+  @Test
+  public void cMacroIp4() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{c}");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: 1.2.3.4", result.getExplanation());
+  }
+
+  @Test
+  public void cMacroIp6() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{c}");
+    Result result = it.checkHost(ip6, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: 1234:5678:0:0:0:0:90ab:cd3f", result.getExplanation());
+  }
+
+  // p 7.1 / 5.5
+  @Test
+  public void pNameIsPresent() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", "x.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "baz.bar")
+        .a("x.foo.com", "1.2.3.4")
+        .a("foo.com", "1.2.3.4")
+        .a("baz.bar", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: foo.com", result.getExplanation());
+  }
+
+  @Test
+  public void psubdomainIsPresent() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", "x.y.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "baz.bar")
+        .a("x.y.foo.com", "1.2.3.4")
+        .a("baz.bar", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: x.y.foo.com", result.getExplanation());
+  }
+
+  @Test
+  public void pnoDomainOrSubdomain() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", "baz.bar")
+        .a("baz.bar", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: baz.bar", result.getExplanation());
+  }
+
+  @Test
+  public void pnoPtrs() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{p}");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: unknown", result.getExplanation());
+  }
+
+  @Test
+  public void pPtrsDontValidate() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", "x.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "baz.bar")
+        .a("x.foo.com", "1.2.3.5")
+        .a("foo.com", "1.2.3.5")
+        .a("baz.bar", "1.2.3.5");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: unknown", result.getExplanation());
+  }
+
+  @Test
+  public void pDnsErrorOnPtrLookup() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: unknown", result.getExplanation());
+  }
+
+  @Test
+  public void pDnsErrorOnRR() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", "%{p}")
+        .ptr("4.3.2.1.in-addr.arpa", "x.foo.com")
+        .ptr("4.3.2.1.in-addr.arpa", "foo.com")
+        .a("x.foo.com", "1.2.3.4")
+        .a("foo.com", new DnsFail("Some DNS error"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: x.foo.com", result.getExplanation());
+  }
+
+  @Test
+  public void hMacro() {
+    dns.txt("foo.com", "v=spf1 a:%{hr}.foo -all").a("baz.bar.foo", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void rMacroNullHost() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{r}");
+    it = new SpfImp(dns, new Settings(10, 2, null, "zoinks: "));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("zoinks: unknown", result.getExplanation());
+  }
+
+  @Test
+  public void tMacro() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{t}");
+    it = new SpfImp(dns, new Settings(10, 2, null, null));
+    String pattern = (System.currentTimeMillis() / 100000) + "[0-9][0-9]";
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertThat(result.getExplanation(), matchesPattern(pattern));
+  }
+
+  // 7.3 truncate long domain for query
+  @Test
+  public void includeDsTruncated() {
+    String domain = "foo.";
+    while (domain.length() < 128) {
+      domain += domain;
+    }
+    dns.txt(domain, "v=spf1 include:%{d}%{d} -all")
+        .txt(domain.substring(4) + domain, "v=spf1 +all");
+    it = new SpfImp(dns, new Settings(10, 2, null, "zoinks: "));
+    Result result = it.checkHost(ip, domain, "sender@" + domain, "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  // 4.6.1 mechanism and modifier names are case insensitve
+  // Actually, everything is case insensitive, per the ABNF
+  @Test
+  public void caseInsensitive() {
+    dns.txt("foo.com", "v=SPF1 a:FoO.foo mX:BaR.CoM RediRect=BAR.COM")
+        .txt("bar.com", "V=SPF1 INCLUDE:bar.baz IP4:8.8.8.8 +AlL")
+        .txt("bar.baz", "V=spf1 Ip6:ABCD::ef12 ExistS:foo.foo -ALL")
+        .mx("bar.com", "mx1.bar")
+        .a("mx1.bar", "9.9.9.9")
+        .a("foo.foo", "9.9.9.9");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  // % escaped chars
+  @Test
+  public void escapedCharsInDomainSpec() {
+    // For some reason these are allowed in domain spec :shrug:
+    // This test is a bit bogus because a real DNS lookup would fail,
+    // but it proves the expansion "works"
+    dns.txt("foo.com", "v=spf1 a:f%_o%-o%%.bar.com -all").a("f o%20o%.bar.com", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void escapedCharsInExplanation() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "foo%%bar%_baz%-quux");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals("foo.com explained: foo%bar baz%20quux", result.getExplanation());
+  }
+
+  // upper-case macro letters
+  @Test
+  public void upperCaseMacroInDS() {
+    // For some reason these are allowed in domain spec :shrug:
+    dns.txt("foo.com", "v=spf1 a:%{L} -all").a("foo%2bbar.baz", "1.2.3.4");
+    Result result = it.checkHost(ip, "foo.com", "foo+bar.baz@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void upperCaseMacroInExp() {
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{L2R}");
+    Result result = it.checkHost(ip, "foo.com", "foo#bar.baz.quux@foo.com", "bar.baz");
+    assertEquals("foo.com explained: baz.foo%23bar", result.getExplanation());
+  }
+
+  @Test
+  public void examplesInRfc() throws Exception {
+    runExample("%{s}", "strong-bad@email.example.com", true);
+    runExample("%{o}", "email.example.com", true);
+    runExample("%{d}", "email.example.com", true);
+    runExample("%{d4}", "email.example.com", true);
+    runExample("%{d3}", "email.example.com", true);
+    runExample("%{d2}", "example.com", true);
+    runExample("%{d1}", "com", true);
+    runExample("%{dr}", "com.example.email", true);
+    runExample("%{d2r}", "example.email", true);
+    runExample("%{l}", "strong-bad", true);
+    runExample("%{l-}", "strong.bad", true);
+    runExample("%{lr}", "strong-bad", true);
+    runExample("%{lr-}", "bad.strong", true);
+    runExample("%{l1r-}", "strong", true);
+    runExample("%{ir}.%{v}._spf.%{d2}", "3.2.0.192.in-addr._spf.example.com", true);
+    runExample("%{lr-}.lp._spf.%{d2}", "bad.strong.lp._spf.example.com", true);
+    runExample(
+        "%{lr-}.lp.%{ir}.%{v}._spf.%{d2}",
+        "bad.strong.lp.3.2.0.192.in-addr._spf.example.com", true);
+    runExample(
+        "%{ir}.%{v}.%{l1r-}.lp._spf.%{d2}", "3.2.0.192.in-addr.strong.lp._spf.example.com", true);
+    runExample(
+        "%{d2}.trusted-domains.example.net", "example.com.trusted-domains.example.net", true);
+    runExample(
+        "%{ir}.%{v}._spf.%{d2}",
+        "1.0.b.c.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6._spf.example.com",
+        false);
+  }
+
+  private void runExample(String macro, String expected, boolean ip4) throws Exception {
+    dns = new MockDns();
+    dns.txt("email.example.com", "v=spf1 exp=exp.com -all")
+        .txt("exp.com", macro)
+        .ptr("3.2.0.192.in-addr.arpa", "mx.example.org");
+    InetAddress addr = InetAddress.getByName(ip4 ? "192.0.2.3" : "2001:db8::cb01");
+    it = new SpfImp(dns, new Settings(10, 2, null, null));
+    Result result =
+        it.checkHost(addr, "email.example.com", "strong-bad@email.example.com", "baz.quux");
+    assertEquals("Failed example:" + macro, expected, result.getExplanation());
+  }
 }

@@ -48,7 +48,7 @@ public class Include implements Mechanism {
   @Override
   public boolean matches(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
-    String expandedDomain = domainSpec.expand(spf, ip, domain, sender, ehloParam);
+    String expandedDomain = domainSpec.expandTruncated(spf, ip, domain, sender, ehloParam);
     Result result = spf.checkHost(ip, expandedDomain, sender, ehloParam);
     switch (result.getCode()) {
       case Pass:

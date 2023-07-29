@@ -34,7 +34,7 @@ public class Settings {
   public Settings(int lookupLimit, int voidLookupLimit, String hostDomain, String explainPrefix) {
     this.lookupLimit = lookupLimit;
     this.voidLookupLimit = voidLookupLimit;
-    this.hostDomain = hostDomain;
+    this.hostDomain = hostDomain == null ? "unknown" : hostDomain;
     this.explainPrefix = explainPrefix;
   }
 

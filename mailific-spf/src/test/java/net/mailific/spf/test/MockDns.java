@@ -62,9 +62,7 @@ public class MockDns implements NameResolver {
   }
 
   public MockDns ptr(String name, Object mxOrException) {
-    System.out.println("before " + ptr.get(dot(name)));
     ptr.compute(dot(name), def).add(mxOrException);
-    System.out.println("after " + ptr.get(dot(name)));
     return this;
   }
 
@@ -141,11 +139,11 @@ public class MockDns implements NameResolver {
 
   @Override
   public List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound {
-    System.out.println("Resolving to " + ptr.get(dot(name)));
     return resolve(ptr, name);
   }
 
   public String dot(String s) {
+    s = s.toLowerCase();
     return (s.endsWith(".")) ? s : s + ".";
   }
 }
