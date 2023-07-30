@@ -36,11 +36,7 @@ public class Arpa extends Macro {
   }
 
   @Override
-  public String toString() {
-    return "%{v"
-        + (getRightParts() > 0 ? getRightParts() : "")
-        + (isReverse() ? "r" : "")
-        + (getDelimiter() == null ? "" : getDelimiter())
-        + "}";
+  public String getType() {
+    return "v";
   }
 }

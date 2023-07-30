@@ -34,11 +34,7 @@ public class Receiver extends Macro {
   }
 
   @Override
-  public String toString() {
-    return "%{r"
-        + (getRightParts() > 0 ? getRightParts() : "")
-        + (isReverse() ? "r" : "")
-        + (getDelimiter() == null ? "" : getDelimiter())
-        + "}";
+  public String getType() {
+    return "r";
   }
 }

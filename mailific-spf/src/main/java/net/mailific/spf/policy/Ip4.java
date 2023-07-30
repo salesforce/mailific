@@ -32,6 +32,9 @@ public class Ip4 implements Mechanism {
     } catch (UnknownHostException e) {
       throw new PolicySyntaxException("Bad ip4 network: " + ip4Network);
     }
+    if (cidrLength > 32) {
+      throw new PolicySyntaxException("ip4 cidr length > 32");
+    }
     this.cidrLength = cidrLength;
   }
 

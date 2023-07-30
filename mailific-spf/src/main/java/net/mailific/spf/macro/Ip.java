@@ -35,4 +35,9 @@ public class Ip extends Macro {
     String dotted = spf.dotFormatIp(ip);
     return transform(dotted, getRightParts(), isReverse(), getDelimiter());
   }
+
+  @Override
+  public String getType() {
+    return "i";
+  }
 }

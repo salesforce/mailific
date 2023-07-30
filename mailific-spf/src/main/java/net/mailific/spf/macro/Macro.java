@@ -194,12 +194,21 @@ public abstract class Macro implements Expandable {
 
   @Override
   public String toString() {
-    return "Macro [rightParts="
-        + rightParts
-        + ", reverse="
-        + reverse
-        + ", delimiter="
-        + delimiter
-        + "]";
+    return "%{"
+        + (isEscape() ? getType().toUpperCase() : getType().toLowerCase())
+        + (getRightParts() > 0 ? getRightParts() : "")
+        + (isReverse() ? "r" : "")
+        + (getDelimiter() == null ? "" : getDelimiter())
+        + "}";
   }
+
+  public static BitSet getUnreserved() {
+    return unreserved;
+  }
+
+  public boolean isEscape() {
+    return escape;
+  }
+
+  public abstract String getType();
 }

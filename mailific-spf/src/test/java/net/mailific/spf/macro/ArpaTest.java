@@ -18,25 +18,16 @@
 
 package net.mailific.spf.macro;
 
-import java.net.InetAddress;
-import net.mailific.spf.SpfUtil;
-import net.mailific.spf.policy.PolicySyntaxException;
+import static org.junit.Assert.assertEquals;
 
-public class Domain extends Macro {
+import org.junit.Test;
 
-  protected Domain(int rightParts, boolean reverse, String delimiter, boolean escape)
-      throws PolicySyntaxException {
-    super(rightParts, reverse, delimiter, escape);
-  }
+public class ArpaTest {
 
-  @Override
-  public String innerExpand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    return transform(domain, getRightParts(), isReverse(), getDelimiter());
-  }
-
-  @Override
-  public String getType() {
-    return "d";
+  @Test
+  public void string() {
+    assertEquals("%{v}", new Arpa(0, false, null, false).toString());
+    assertEquals("%{V}", new Arpa(0, false, null, true).toString());
+    assertEquals("%{v1r+-}", new Arpa(1, true, "+-", false).toString());
   }
 }

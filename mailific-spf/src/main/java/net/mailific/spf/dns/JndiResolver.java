@@ -112,7 +112,7 @@ public class JndiResolver implements NameResolver {
     try {
       return resolve(name, AAAA, JndiResolver::mapFromLookup);
     } catch (ShouldNotOccur e) {
-      throw new DnsFail("Bad A record: " + e.getMessage());
+      throw new DnsFail("Bad AAAA record: " + e.getMessage());
     }
   }
 

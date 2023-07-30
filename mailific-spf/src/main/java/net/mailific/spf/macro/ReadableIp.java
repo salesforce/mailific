@@ -34,4 +34,9 @@ public class ReadableIp extends Macro {
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
     return transform(ip.getHostAddress(), getRightParts(), isReverse(), getDelimiter());
   }
+
+  @Override
+  public String getType() {
+    return "c";
+  }
 }

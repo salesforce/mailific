@@ -34,11 +34,7 @@ public class Sender extends Macro {
   }
 
   @Override
-  public String toString() {
-    return "%{s"
-        + (getRightParts() > 0 ? getRightParts() : "")
-        + (isReverse() ? "r" : "")
-        + (getDelimiter() == null ? "" : getDelimiter())
-        + "}";
+  public String getType() {
+    return "s";
   }
 }

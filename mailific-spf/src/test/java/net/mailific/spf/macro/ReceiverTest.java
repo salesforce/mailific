@@ -18,20 +18,14 @@
 
 package net.mailific.spf.macro;
 
-import java.net.InetAddress;
-import net.mailific.spf.SpfUtil;
-import net.mailific.spf.policy.PolicySyntaxException;
+import static org.junit.Assert.assertEquals;
 
-public class Hostname extends Macro {
+import org.junit.Test;
 
-  protected Hostname(int rightParts, boolean reverse, String delimiter, boolean escape)
-      throws PolicySyntaxException {
-    super(rightParts, reverse, delimiter, escape);
-  }
+public class ReceiverTest {
 
-  @Override
-  public String innerExpand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    return transform(spf.getHostDomain(), getRightParts(), isReverse(), getDelimiter());
+  @Test
+  public void string() {
+    assertEquals("%{r}", new Receiver(0, false, null, false).toString());
   }
 }

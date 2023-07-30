@@ -54,4 +54,8 @@ public class Escape extends Macro {
   public String toString() {
     return "%" + value;
   }
+
+  public String getType() {
+    return value;
+  }
 }

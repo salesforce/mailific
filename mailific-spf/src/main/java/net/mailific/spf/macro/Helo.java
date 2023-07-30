@@ -34,11 +34,7 @@ public class Helo extends Macro {
   }
 
   @Override
-  public String toString() {
-    return "%{h"
-        + (getRightParts() > 0 ? getRightParts() : "")
-        + (isReverse() ? "r" : "")
-        + (getDelimiter() == null ? "" : getDelimiter())
-        + "}";
+  public String getType() {
+    return "h";
   }
 }

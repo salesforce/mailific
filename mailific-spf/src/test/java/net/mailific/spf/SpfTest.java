@@ -563,6 +563,14 @@ public class SpfTest {
     assertEquals(ResultCode.Softfail, result.getCode());
   }
 
+  @Test
+  public void ptrNotFound() {
+    dns.txt("foo.com", "v=spf1 ~ptr -all")
+        .ptr("4.3.2.1.in-addr.arpa", new NameNotFound("4.3.2.1.in-addr.arpa"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+  }
+
   // 5 - CIDR prefixes
 
   @Test
@@ -609,6 +617,34 @@ public class SpfTest {
         .a("baz.quux", "1.2.254.205");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
+  }
+
+  @Test
+  public void cidr_zero() {
+    dns.txt("foo.com", "v=spf1 ~ip4:100.1.1.0/0 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Softfail, result.getCode());
+  }
+
+  @Test
+  public void cidr_ip4_oor() {
+    dns.txt("foo.com", "v=spf1 ~ip4:1.2.254.205/60 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void cidr_ip6_oor() {
+    dns.txt("foo.com", "v=spf1 ~ip6:1234:5678:1234::/190 -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void cidr_a_oor() {
+    dns.txt("foo.com", "v=spf1 a:foo.bar/50 -all").a("foo.bar", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
   }
 
   ///////////////////
@@ -696,6 +732,13 @@ public class SpfTest {
     dns.txt("foo.com", "v=spf1 ~mx:bar.com -all").mx("bar.com", new DnsFail("Some DNS error"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Temperror, result.getCode());
+  }
+
+  @Test
+  public void mx_notFound() {
+    dns.txt("foo.com", "v=spf1 ~mx:bar.com -all").mx("bar.com", new NameNotFound("bar.com"));
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
   }
 
   @Test
@@ -852,6 +895,21 @@ public class SpfTest {
 
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
+  }
+
+  @Test
+  public void include_nonHostname() {
+    dns.txt("foo.com", "v=spf1 +include:_spf.bar.com ~all").txt("_spf.bar.com", "v=spf1 +all");
+
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void domainWithEndDot() {
+    dns.txt("foo.com.", "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com.", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Pass, result.getCode());
   }
 
   ///////////

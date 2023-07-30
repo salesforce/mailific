@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.dns.InvalidName;
@@ -93,8 +92,10 @@ public class SpfUtilImp implements SpfUtil {
       }
       return result;
     } catch (ParseException | PolicySyntaxException e) {
+      e.printStackTrace();
       return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {
+      e.printStackTrace();
       return e.result;
     }
   }
@@ -124,8 +125,6 @@ public class SpfUtilImp implements SpfUtil {
     }
   }
 
-  private static final Pattern DOMAIN_CHARS_PATTERN = Pattern.compile("^[-A-Za-z0-9.]+$");
-
   /* Probably we could just skip this, or limit it to the small number of checks that
    * would not always result in a lookup failure.
    */
@@ -147,9 +146,6 @@ public class SpfUtilImp implements SpfUtil {
       if (labels[i].length() > 63) {
         throw new Abort(ResultCode.None, "Domain label > 63 chars: " + domain);
       }
-    }
-    if (!DOMAIN_CHARS_PATTERN.matcher(domain).matches()) {
-      throw new Abort(ResultCode.None, "Illegal domain characters: " + domain);
     }
   }
 
@@ -338,9 +334,10 @@ public class SpfUtilImp implements SpfUtil {
     if (bits == 0) {
       return true;
     }
+    // If more bits are specified than there are in the address,
+    // compare all bits
     if (bits > ip1Bytes.length * 8) {
-      // TODO: probably should throw?
-      return false;
+      bits = ip1Bytes.length * 8;
     }
     int i = 0;
     while (bits >= 8) {

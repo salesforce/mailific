@@ -35,4 +35,9 @@ public class Timestamp extends Macro {
     // No point in running through transform, as it wouldn't change
     return String.valueOf(System.currentTimeMillis() / 1000);
   }
+
+  @Override
+  public String getType() {
+    return "t";
+  }
 }

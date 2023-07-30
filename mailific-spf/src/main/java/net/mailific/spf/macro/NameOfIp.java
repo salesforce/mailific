@@ -44,4 +44,9 @@ public class NameOfIp extends Macro {
       return "unknown";
     }
   }
+
+  @Override
+  public String getType() {
+    return "p";
+  }
 }

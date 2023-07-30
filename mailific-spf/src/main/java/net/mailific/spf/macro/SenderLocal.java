@@ -35,4 +35,9 @@ public class SenderLocal extends Macro {
     String local = sender.substring(0, sender.lastIndexOf("@"));
     return transform(local, getRightParts(), isReverse(), getDelimiter());
   }
+
+  @Override
+  public String getType() {
+    return "l";
+  }
 }

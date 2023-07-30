@@ -33,6 +33,9 @@ public class Ip6 implements Mechanism {
     } catch (UnknownHostException e) {
       throw new PolicySyntaxException("Bad ip6 network: " + ip6Network);
     }
+    if (cidrLength > 128) {
+      throw new PolicySyntaxException("ip6 cidr length > 128");
+    }
     this.cidrLength = cidrLength;
   }
 

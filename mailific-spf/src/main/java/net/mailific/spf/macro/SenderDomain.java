@@ -35,4 +35,9 @@ public class SenderDomain extends Macro {
     String d = sender.substring(sender.lastIndexOf("@") + 1);
     return transform(d, getRightParts(), isReverse(), getDelimiter());
   }
+
+  @Override
+  public String getType() {
+    return "o";
+  }
 }
