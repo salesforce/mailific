@@ -101,11 +101,17 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   private static boolean hasSpfVersion(String s) {
+    // The ABNF says it's case insensitive. The spec says '...exactly
+    // "v=spf1"'. But there's no formal definition of exactly, and
+    // nothing explicitly calls out an exception to the ABNF. So I'm
+    // going with case-insensitive.
     return s != null && s.length() >= 6 && s.substring(0, 6).equalsIgnoreCase("v=spf1");
   }
 
   public String lookupSpfRecord(String domain) throws Abort {
     try {
+      // Use resolver directly instead of this.resolveTxtRecords() because
+      // error handling is different for the policy lookup
       List<String> txtRecords = resolver.resolveTxtRecords(domain);
       txtRecords =
           txtRecords.stream().filter(SpfUtilImp::hasSpfVersion).collect(Collectors.toList());
@@ -140,7 +146,7 @@ public class SpfUtilImp implements SpfUtil {
       throw new Abort(ResultCode.None, "Domain not FQDN: " + domain);
     }
     for (int i = 0; i < labels.length; i++) {
-      if (labels[i].isEmpty() && i != labels.length - 1) {
+      if (labels[i].isEmpty()) {
         throw new Abort(ResultCode.None, "Domain contains 0-length label: " + domain);
       }
       if (labels[i].length() > 63) {

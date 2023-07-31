@@ -140,14 +140,14 @@ public class SpfTest {
   public void nameNotFound() {
     dns.txt("foo.com", new NameNotFound("foo.com"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(result.getCode(), ResultCode.None);
+    assertEquals(ResultCode.None, result.getCode();
   }
 
   // 4.5
   @Test
   public void noTxtRecords() {
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(result.getCode(), ResultCode.None);
+    assertEquals(ResultCode.None, result.getCode();
   }
 
   // 4.5
@@ -155,7 +155,7 @@ public class SpfTest {
   public void noSpfRecords() {
     dns.txt("foo.com", "foo").txt("foo.com", "v=spf2.0 -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(result.getCode(), ResultCode.None);
+    assertEquals(ResultCode.None, result.getCode();
   }
 
   // 4.5

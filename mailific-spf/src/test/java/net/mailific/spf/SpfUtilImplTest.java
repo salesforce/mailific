@@ -66,6 +66,19 @@ public class SpfUtilImplTest {
     assertCidrMatch("1.23.45.67", "1.23.45.68", 90, false);
     assertCidrMatch("1.23.45.67", "1.23.45.67", 0, true);
     assertCidrMatch("0.0.0.0", "255.255.255.255", 0, true);
+
+    byte[] b1 = {0, 0, 0, (byte) 0b11111111};
+    byte[] b2 = {0, 0, 0, (byte) 0b11110000};
+
+    assertCidrMatch(b1, b2, 24, true);
+    assertCidrMatch(b1, b2, 25, true);
+    assertCidrMatch(b1, b2, 26, true);
+    assertCidrMatch(b1, b2, 27, true);
+    assertCidrMatch(b1, b2, 28, true);
+    assertCidrMatch(b1, b2, 29, false);
+    assertCidrMatch(b1, b2, 30, false);
+    assertCidrMatch(b1, b2, 31, false);
+    assertCidrMatch(b1, b2, 32, false);
   }
 
   @Test
@@ -97,7 +110,10 @@ public class SpfUtilImplTest {
   }
 
   void assertCidrMatch(InetAddress ip1, InetAddress ip2, int bits, boolean match) throws Exception {
-    assertEquals(match, it.cidrMatch(ip1, ip2, bits));
+    assertEquals(
+        "Expected " + ip1 + "/" + bits + (match ? " to match " : " to not match ") + ip2,
+        match,
+        it.cidrMatch(ip1, ip2, bits));
   }
 
   @Test
