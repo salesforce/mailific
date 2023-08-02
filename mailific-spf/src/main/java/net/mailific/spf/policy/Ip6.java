@@ -40,7 +40,7 @@ public class Ip6 implements Mechanism {
   }
 
   public String toString() {
-    return "ip6:" + ip6 + (cidrLength > -1 ? "/" + cidrLength : "");
+    return "ip6:" + ip6.getHostAddress() + (cidrLength > -1 ? "/" + cidrLength : "");
   }
 
   @Override

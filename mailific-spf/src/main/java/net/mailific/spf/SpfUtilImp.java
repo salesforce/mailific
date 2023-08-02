@@ -18,10 +18,8 @@
 
 package net.mailific.spf;
 
-import java.io.ByteArrayInputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +31,6 @@ import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolver;
 import net.mailific.spf.dns.RuntimeDnsFail;
 import net.mailific.spf.parser.ParseException;
-import net.mailific.spf.parser.SpfPolicy;
 import net.mailific.spf.policy.Directive;
 import net.mailific.spf.policy.Policy;
 import net.mailific.spf.policy.PolicySyntaxException;
@@ -59,11 +56,7 @@ public class SpfUtilImp implements SpfUtil {
     try {
       verifyDomain(domain);
       String spfRecord = lookupSpfRecord(domain);
-      SpfPolicy parser =
-          new SpfPolicy(
-              new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
-      parser.setExplainPrefix(settings.getExplainPrefix());
-      Policy policy = parser.policy();
+      Policy policy = Policy.parse(spfRecord, settings.getExplainPrefix());
       Result result = null;
       for (Directive directive : policy.getDirectives()) {
         result = directive.evaluate(this, ip, domain, sender, ehloParam);
@@ -110,9 +103,7 @@ public class SpfUtilImp implements SpfUtil {
 
   public String lookupSpfRecord(String domain) throws Abort {
     try {
-      // Use resolver directly instead of this.resolveTxtRecords() because
-      // error handling is different for the policy lookup
-      List<String> txtRecords = resolver.resolveTxtRecords(domain);
+      List<String> txtRecords = resolveTxtRecords(domain);
       txtRecords =
           txtRecords.stream().filter(SpfUtilImp::hasSpfVersion).collect(Collectors.toList());
       if (txtRecords.size() < 1) {
@@ -122,8 +113,6 @@ public class SpfUtilImp implements SpfUtil {
         throw new Abort(ResultCode.Permerror, "Multiple SPF records found for: " + domain);
       }
       return txtRecords.get(0);
-    } catch (NameNotFound e) {
-      throw new Abort(ResultCode.None, "No SPF record found for: " + domain);
     } catch (InvalidName e) {
       throw new Abort(ResultCode.None, e.getMessage());
     } catch (DnsFail e) {
@@ -362,6 +351,11 @@ public class SpfUtilImp implements SpfUtil {
     return true;
   }
 
+  /**
+   * Note that this method does not increment the void lookup counter. That's because it's used by
+   * Explanation, where it would make little sense to switch to a Permerror after you've already
+   * gotten a failure and are just trying to look up the explanation.
+   */
   @Override
   public List<String> resolveTxtRecords(String name) throws DnsFail, Abort {
     List<String> rv = null;
@@ -371,7 +365,6 @@ public class SpfUtilImp implements SpfUtil {
       // Do nothing
     }
     if (rv == null || rv.isEmpty()) {
-      incVoidLookupCounter();
       return Collections.emptyList();
     }
     return rv;

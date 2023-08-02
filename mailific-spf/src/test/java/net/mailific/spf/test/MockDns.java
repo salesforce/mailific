@@ -39,6 +39,7 @@ public class MockDns implements NameResolver {
   Map<String, List<Object>> ptr = new HashMap<>();
 
   public MockDns a(String name, Object ipOrException) {
+    System.out.println("add a: " + name + " -> " + ipOrException);
     a.compute(dot(name), def).add(ipOrException);
     return this;
   }
@@ -82,6 +83,7 @@ public class MockDns implements NameResolver {
       throwIfException(o);
       rv.add(o.toString());
     }
+    // TODO
     return rv;
   }
 
@@ -124,6 +126,7 @@ public class MockDns implements NameResolver {
 
   @Override
   public List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound {
+    System.out.println("Lookup A: " + name);
     return resolveIp(a, name);
   }
 

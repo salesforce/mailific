@@ -20,7 +20,7 @@ package net.mailific.spf.policy;
 
 import static org.junit.Assert.assertThrows;
 
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 import org.junit.Test;
 
 public class IncludeTest {
@@ -30,7 +30,16 @@ public class IncludeTest {
     assertThrows(
         PolicySyntaxException.class,
         () -> {
-          new Include(new MacroString());
+          new Include(null);
+        });
+  }
+
+  @Test
+  public void emptyDomain() {
+    assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          new Include(new DomainSpec());
         });
   }
 }

@@ -22,12 +22,12 @@ import java.net.InetAddress;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 
 public class Ptr implements Mechanism {
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
 
-  public Ptr(MacroString domainSpec) {
+  public Ptr(DomainSpec domainSpec) {
     this.domainSpec = domainSpec;
   }
 

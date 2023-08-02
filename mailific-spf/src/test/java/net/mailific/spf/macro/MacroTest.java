@@ -19,7 +19,9 @@
 package net.mailific.spf.macro;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
+import net.mailific.spf.policy.PolicySyntaxException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -174,5 +176,22 @@ public class MacroTest {
     String unescaped = "abc DEF%123";
     String expected = "abc%20DEF%25123";
     assertEquals(expected, it.urlEscape(unescaped));
+  }
+
+  @Test
+  public void badType() {
+    assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          Macro.macro("z", 0, false, null);
+        });
+  }
+
+  @Test
+  public void variousToString() throws PolicySyntaxException {
+    assertEquals("%{p}", Macro.macro("p", 0, false, null).toString());
+    assertEquals("%{c}", Macro.macro("c", 0, false, null).toString());
+    assertEquals("%{s2r}", Macro.macro("s", 2, true, null).toString());
+    assertEquals("%{t/}", Macro.macro("t", 0, false, "/").toString());
   }
 }

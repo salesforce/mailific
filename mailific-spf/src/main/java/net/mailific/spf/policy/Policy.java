@@ -18,8 +18,12 @@
 
 package net.mailific.spf.policy;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import net.mailific.spf.parser.ParseException;
+import net.mailific.spf.parser.SpfPolicy;
 
 public class Policy {
   private final String version;
@@ -28,15 +32,23 @@ public class Policy {
   private final Explanation explanation;
   private final List<Modifier> modifiers;
 
+  public static Policy parse(String spfRecord, String explainPrefix)
+      throws ParseException, PolicySyntaxException {
+    SpfPolicy parser =
+        new SpfPolicy(
+            new ByteArrayInputStream(spfRecord.getBytes(StandardCharsets.US_ASCII)), "US-ASCII");
+    parser.setExplainPrefix(explainPrefix);
+    return parser.policy();
+  }
+
   public Policy(String version, List<Directive> directives, List<Modifier> modifiers)
       throws PolicySyntaxException {
     this.version = version;
-    this.directives = directives;
-    this.modifiers = modifiers;
-
+    this.directives = directives == null ? Collections.emptyList() : directives;
+    this.modifiers = modifiers == null ? Collections.emptyList() : modifiers;
     Redirect redirect = null;
     Explanation explanation = null;
-    for (Modifier m : modifiers) {
+    for (Modifier m : this.modifiers) {
       if (m instanceof Redirect) {
         if (redirect == null) {
           redirect = (Redirect) m;
@@ -65,16 +77,9 @@ public class Policy {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("\"");
     sb.append(getVersion());
-    sb.append(directives.stream().map(t -> t.toString()).collect(Collectors.joining(" ", " ", "")));
-    if (redirect != null) {
-      sb.append(' ').append(redirect.toString());
-    }
-    if (redirect != null) {
-      sb.append(' ').append(redirect.toString());
-    }
-    sb.append("\"");
+    directives.forEach(d -> sb.append(' ').append(d));
+    modifiers.forEach(m -> sb.append(' ').append(m));
     return sb.toString();
   }
 
@@ -84,9 +89,5 @@ public class Policy {
 
   public Explanation getExplanation() {
     return explanation;
-  }
-
-  public List<Modifier> getModifiers() {
-    return modifiers;
   }
 }

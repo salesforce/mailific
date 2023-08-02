@@ -23,13 +23,13 @@ import net.mailific.spf.Abort;
 import net.mailific.spf.Result;
 import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 
 public class Include implements Mechanism {
 
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
 
-  public Include(MacroString domainSpec) throws PolicySyntaxException {
+  public Include(DomainSpec domainSpec) throws PolicySyntaxException {
     if (domainSpec == null || domainSpec.isEmpty()) {
       throw new PolicySyntaxException("Include domainSpec can't be empty.");
     }
@@ -48,7 +48,7 @@ public class Include implements Mechanism {
   @Override
   public boolean matches(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) throws Abort {
-    String expandedDomain = domainSpec.expandTruncated(spf, ip, domain, sender, ehloParam);
+    String expandedDomain = domainSpec.expand(spf, ip, domain, sender, ehloParam);
     Result result = spf.checkHost(ip, expandedDomain, sender, ehloParam);
     switch (result.getCode()) {
       case Pass:

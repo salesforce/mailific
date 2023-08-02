@@ -18,25 +18,25 @@
 
 package net.mailific.spf.macro;
 
-import java.net.InetAddress;
-import net.mailific.spf.SpfUtil;
+import static org.junit.Assert.assertEquals;
 
-public class Literal implements Expandable {
+import net.mailific.spf.policy.PolicySyntaxException;
+import org.junit.Assert;
+import org.junit.Test;
 
-  private final String value;
+public class EscapeTest {
 
-  public Literal(String value) {
-    this.value = value;
+  @Test
+  public void badType() {
+    Assert.assertThrows(
+        PolicySyntaxException.class,
+        () -> {
+          new Escape("z");
+        });
   }
 
-  @Override
-  public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    return value;
-  }
-
-  @Override
-  public String toString() {
-    return value;
+  @Test
+  public void getType() throws Exception {
+    assertEquals("%", new Escape("%").getType());
   }
 }

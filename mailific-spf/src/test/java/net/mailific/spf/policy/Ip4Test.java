@@ -16,27 +16,15 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.macro;
+package net.mailific.spf.policy;
 
-import java.net.InetAddress;
-import net.mailific.spf.SpfUtil;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class Literal implements Expandable {
+public class Ip4Test {
 
-  private final String value;
-
-  public Literal(String value) {
-    this.value = value;
-  }
-
-  @Override
-  public String expand(
-      SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    return value;
-  }
-
-  @Override
-  public String toString() {
-    return value;
+  @Test
+  public void badName() throws Exception {
+    Assert.assertThrows(PolicySyntaxException.class, () -> new Ip4("~~~", 12));
   }
 }

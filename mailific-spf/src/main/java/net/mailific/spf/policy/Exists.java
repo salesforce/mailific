@@ -22,16 +22,15 @@ import java.net.InetAddress;
 import java.util.List;
 import net.mailific.spf.Abort;
 import net.mailific.spf.ResultCode;
-import net.mailific.spf.RuntimeAbort;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 
 public class Exists implements Mechanism {
 
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
 
-  public Exists(MacroString domainSpec) {
+  public Exists(DomainSpec domainSpec) {
     this.domainSpec = domainSpec;
     // TODO: null check
   }
@@ -54,8 +53,6 @@ public class Exists implements Mechanism {
       return !results.isEmpty();
     } catch (DnsFail e) {
       throw new Abort(ResultCode.Temperror, e.getMessage());
-    } catch (RuntimeAbort e) {
-      throw e.getAbort();
     }
   }
 }

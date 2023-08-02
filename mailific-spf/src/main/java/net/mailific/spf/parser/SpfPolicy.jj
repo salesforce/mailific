@@ -265,10 +265,10 @@ MacroString macroString() throws PolicySyntaxException :
    parser might want to backtrack if it doesn't match because of
    the ending.
 */
-MacroString domainSpec() throws PolicySyntaxException :
+DomainSpec domainSpec() throws PolicySyntaxException :
 {
     Token t = null;
-    MacroString ms = new MacroString();
+    DomainSpec ds = new DomainSpec();
     boolean domainEnd = false;
     Macro macro = null;
 }
@@ -277,26 +277,26 @@ MacroString domainSpec() throws PolicySyntaxException :
      macro = macro()
      {
          domainEnd = true;
-         ms.add(macro);
+         ds.add(macro);
      }
      |
      t = < MACRO_LITERAL >
      {
          domainEnd = false;
-         ms.add(new Literal(t.image));
+         ds.add(new Literal(t.image));
      }
      |
      t = < TOPLABEL >
      {
          domainEnd = true;
-         ms.add(new Literal(t.image));
+         ds.add(new Literal(t.image));
      }
      )*
     {
         if (! domainEnd) {
             throw new PolicySyntaxException("Domain-spec can't end in macro literal.");
         }
-        return ms;
+        return ds;
     }
 
 }
@@ -345,7 +345,7 @@ Mechanism mechanism() throws PolicySyntaxException :
     Token t = null;
     String dspec = null;
     int cidr = -1;
-    MacroString ms = null;
+    DomainSpec ds = null;
 }
 {
     (    <  ALL >
@@ -353,41 +353,41 @@ Mechanism mechanism() throws PolicySyntaxException :
          return new All();
      }
      |
-     ( < INCLUDE > < COLON > ms = domainSpec()
+     ( < INCLUDE > < COLON > ds = domainSpec()
        {
-           return new Include(ms);
+           return new Include(ds);
        }
        )
      |
      (      < A > 
       {
-          ms = null;
+          ds = null;
       }
-            ( < COLON > ms = domainSpec() )? 
+            ( < COLON > ds = domainSpec() )? 
             ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
       {
-          return new A(ms, cidr);
+          return new A(ds, cidr);
       }
       )
      |
      (      < MX > 
       {
-          ms = null;
+          ds = null;
       }
-            ( < COLON > ms = domainSpec() )?
+            ( < COLON > ds = domainSpec() )?
             ( t = < CIDR_DIGITS > {  cidr = Integer.parseInt(t.image.substring(1)); } )?
       {
-          return new MX(ms, cidr);
+          return new MX(ds, cidr);
       }
       )
      |
      (      < PTR >
       {
-          ms = null;
+          ds = null;
       }
-      ( < COLON > ms = domainSpec() )?
+      ( < COLON > ds = domainSpec() )?
       {
-          return new Ptr(ms);
+          return new Ptr(ds);
       }
       )
      |
@@ -406,9 +406,9 @@ Mechanism mechanism() throws PolicySyntaxException :
       }
       )
      |
-     ( < EXISTS > < COLON > ms = domainSpec()
+     ( < EXISTS > < COLON > ds = domainSpec()
        {
-           return new Exists(ms);
+           return new Exists(ds);
        }
        )
      )   
@@ -437,22 +437,23 @@ Modifier modifier() throws PolicySyntaxException :
 {
     Token t = null;
     MacroString ms = null;
+    DomainSpec ds = null;
 }
 {
-    ( < REDIRECT > ms = domainSpec()
+    ( < REDIRECT > ds = domainSpec()
       {
-          return new Redirect(ms);
+          return new Redirect(ds);
       }
       |
-      ( < EXPLANATION > ms = domainSpec()
+      ( < EXPLANATION > ds = domainSpec()
         {
-            return new Explanation(ms, explainPrefix);
+            return new Explanation(ds, explainPrefix);
         }
         )
       |
       ( t = < UNKNOWN_MOD >  ms = macroString()
       {
-        return new UnknownModifier(t.image, ms);
+        return new UnknownModifier(t.image.substring(0, t.image.length() - 1), ms);
       }
     )
   )

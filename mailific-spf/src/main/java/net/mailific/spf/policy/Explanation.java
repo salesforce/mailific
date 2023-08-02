@@ -25,6 +25,7 @@ import java.util.List;
 import net.mailific.spf.Abort;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.dns.DnsFail;
+import net.mailific.spf.macro.DomainSpec;
 import net.mailific.spf.macro.Expandable;
 import net.mailific.spf.macro.MacroString;
 import net.mailific.spf.parser.ParseException;
@@ -32,10 +33,10 @@ import net.mailific.spf.parser.SpfPolicy;
 
 public class Explanation extends Modifier implements Expandable {
 
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
   private String prefix;
 
-  public Explanation(MacroString domainSpec, String prefix) {
+  public Explanation(DomainSpec domainSpec, String prefix) {
     this.domainSpec = domainSpec;
     this.prefix = prefix;
   }

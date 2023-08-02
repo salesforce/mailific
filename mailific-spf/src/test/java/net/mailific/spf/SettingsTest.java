@@ -16,6 +16,22 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.macro;
+package net.mailific.spf;
 
-public enum MacroType {}
+import static org.junit.Assert.assertEquals;
+
+import java.net.UnknownHostException;
+import org.junit.Test;
+
+public class SettingsTest {
+
+  @Test
+  public void localhostError() {
+    String actual =
+        Settings.defaultHostDomain(
+            () -> {
+              throw new UnknownHostException();
+            });
+    assertEquals("unknown", actual);
+  }
+}

@@ -202,10 +202,6 @@ public abstract class Macro implements Expandable {
         + "}";
   }
 
-  public static BitSet getUnreserved() {
-    return unreserved;
-  }
-
   public boolean isEscape() {
     return escape;
   }

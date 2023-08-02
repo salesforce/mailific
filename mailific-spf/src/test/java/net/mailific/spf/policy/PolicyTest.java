@@ -18,4 +18,49 @@
 
 package net.mailific.spf.policy;
 
-public class PolicyTest {}
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+public class PolicyTest {
+
+  Policy it;
+
+  @Test
+  public void testToString() throws Exception {
+    it = Policy.parse("v=spf1 mx -all", null);
+    assertEquals("v=spf1 +mx -all", it.toString());
+  }
+
+  @Test
+  public void testBigPolicyString() throws Exception {
+    it = Policy.parse("v=spf1 ip6:abcd::1234/120 ~ip6:1234::abcd ?mx -all", null);
+    assertEquals(
+        "v=spf1 +ip6:abcd:0:0:0:0:0:0:1234/120 ~ip6:1234:0:0:0:0:0:0:abcd ?mx -all", it.toString());
+  }
+
+  @Test
+  public void testToStringWithRedirect() throws Exception {
+    it = Policy.parse("v=spf1 mx redirect=foo.com", null);
+    assertEquals("v=spf1 +mx redirect=foo.com", it.toString());
+  }
+
+  @Test
+  public void testToStringWithExplanation() throws Exception {
+    it = Policy.parse("v=spf1 mx exp=foo.com", null);
+    assertEquals("v=spf1 +mx exp=foo.com", it.toString());
+  }
+
+  @Test
+  public void testToStringWithUnknownMods() throws Exception {
+    it = Policy.parse("v=spf1 mx mod=%{l}.com mod2=foo -all", null);
+    assertEquals("v=spf1 +mx -all mod=%{l}.com mod2=foo", it.toString());
+  }
+
+  @Test
+  public void testNullModifiers() throws PolicySyntaxException {
+    // Will never happen if you create the policy by parsing, but just in case
+    it = new Policy("v=spf1", null, null);
+    assertEquals("v=spf1", it.toString());
+  }
+}

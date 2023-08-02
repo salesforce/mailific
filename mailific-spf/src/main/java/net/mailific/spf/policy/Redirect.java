@@ -18,13 +18,13 @@
 
 package net.mailific.spf.policy;
 
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 
 public class Redirect extends Modifier {
 
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
 
-  public Redirect(MacroString domainSpec) {
+  public Redirect(DomainSpec domainSpec) {
     this.domainSpec = domainSpec;
   }
 
@@ -32,7 +32,7 @@ public class Redirect extends Modifier {
     return "redirect=" + domainSpec;
   }
 
-  public MacroString getDomainSpec() {
+  public DomainSpec getDomainSpec() {
     return domainSpec;
   }
 }

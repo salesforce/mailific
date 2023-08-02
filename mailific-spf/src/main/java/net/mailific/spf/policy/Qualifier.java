@@ -38,7 +38,7 @@ public enum Qualifier {
     return symbol;
   }
 
-  public static Qualifier fromSymbol(String s) {
+  public static Qualifier fromSymbol(String s) throws PolicySyntaxException {
     switch (s) {
       case "+":
         return PASS;
@@ -49,7 +49,7 @@ public enum Qualifier {
       case "~":
         return SOFT_FAIL;
       default:
-        throw new IllegalArgumentException("No such qualifier: " + s);
+        throw new PolicySyntaxException("No such qualifier: " + s);
     }
   }
 

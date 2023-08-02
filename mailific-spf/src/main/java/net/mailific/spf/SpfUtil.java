@@ -37,8 +37,14 @@ public interface SpfUtil extends Spf {
 
   int incLookupCounter() throws Abort;
 
+  /**
+   * @return non-null
+   */
   List<InetAddress> getIpsByHostname(String name, boolean ip4) throws DnsFail, Abort;
 
+  /**
+   * @return non-null
+   */
   List<InetAddress> getIpsByMxName(String name, boolean ip4) throws DnsFail, Abort;
 
   boolean cidrMatch(InetAddress ip1, InetAddress ip2, int bits);

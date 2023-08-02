@@ -25,14 +25,14 @@ import net.mailific.spf.Abort;
 import net.mailific.spf.ResultCode;
 import net.mailific.spf.SpfUtil;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.macro.MacroString;
+import net.mailific.spf.macro.DomainSpec;
 
 public class A implements Mechanism {
 
-  private final MacroString domainSpec;
+  private final DomainSpec domainSpec;
   private final int cidrLength;
 
-  public A(MacroString domainSpec, int cidrLength) {
+  public A(DomainSpec domainSpec, int cidrLength) {
     this.domainSpec = domainSpec;
     this.cidrLength = cidrLength;
   }
@@ -58,9 +58,6 @@ public class A implements Mechanism {
     List<InetAddress> ips;
     try {
       ips = spf.getIpsByHostname(name, ip instanceof Inet4Address);
-      if (ips == null) {
-        return false;
-      }
       return ips.stream().anyMatch(i -> spf.cidrMatch(i, ip, cidrLength));
     } catch (DnsFail e) {
       throw new Abort(ResultCode.Temperror, "Error looking up " + name);

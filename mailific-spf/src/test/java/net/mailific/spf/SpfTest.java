@@ -140,14 +140,14 @@ public class SpfTest {
   public void nameNotFound() {
     dns.txt("foo.com", new NameNotFound("foo.com"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(ResultCode.None, result.getCode();
+    assertEquals(ResultCode.None, result.getCode());
   }
 
   // 4.5
   @Test
   public void noTxtRecords() {
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(ResultCode.None, result.getCode();
+    assertEquals(ResultCode.None, result.getCode());
   }
 
   // 4.5
@@ -155,7 +155,7 @@ public class SpfTest {
   public void noSpfRecords() {
     dns.txt("foo.com", "foo").txt("foo.com", "v=spf2.0 -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(ResultCode.None, result.getCode();
+    assertEquals(ResultCode.None, result.getCode());
   }
 
   // 4.5
@@ -1109,6 +1109,24 @@ public class SpfTest {
   }
 
   @Test
+  public void expNoRecords() {
+    dns.txt("foo.com", "v=spf1 exp=%{l}.com -all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Matched -all.", result.getExplanation());
+  }
+
+  @Test
+  public void expTwoRecords() {
+    dns.txt("foo.com", "v=spf1 exp=%{l}.com -all")
+        .txt("sender.com", "foo")
+        .txt("sender.com", "bar");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
+    assertEquals(ResultCode.Fail, result.getCode());
+    assertEquals("Matched -all.", result.getExplanation());
+  }
+
+  @Test
   public void expResultExpanded() {
     dns.txt("foo.com", "v=spf1 exp=bar.com -all").txt("bar.com", "No such mailbox %{l} at %{d}.");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
@@ -1403,7 +1421,9 @@ public class SpfTest {
     String l = "";
     for (int i = 0; i < 127; i++) {
       l += SpfUtilImp.HEX[i % 16];
-      l += ".";
+      if (i < 126) {
+        l += ".";
+      }
     }
     dns.txt("foo.com", "v=spf1 exists:%{l128} -all").a(l, "9.9.9.9");
     Result result = it.checkHost(ip, "foo.com", l + "@foo.com", "bar.baz");
@@ -1605,9 +1625,98 @@ public class SpfTest {
     }
     dns.txt(domain, "v=spf1 include:%{d}%{d} -all")
         .txt(domain.substring(4) + domain, "v=spf1 +all");
-    it = new SpfImp(dns, new Settings(10, 2, null, "zoinks: "));
     Result result = it.checkHost(ip, domain, "sender@" + domain, "bar.baz");
     assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void aDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    dns.txt("foo.com", "v=spf1 a:%{h}.%{h} -all").a(ehlo.substring(4) + "." + ehlo, ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void mxDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    String truncated = ehlo.substring(4) + "." + ehlo;
+    dns.txt("foo.com", "v=spf1 mx:%{h}.%{h} -all").mx(truncated, "a.com").a("a.com", ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void ptrDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    String truncated = ehlo.substring(4) + "." + ehlo;
+    dns.txt("foo.com", "v=spf1 ptr:%{h}.%{h} -all")
+        .ptr("4.3.2.1.in-addr.arpa", truncated)
+        .a(truncated, ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void existsDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    String truncated = ehlo.substring(4) + "." + ehlo;
+    dns.txt("foo.com", "v=spf1 exists:%{h}.%{h} -all").a(truncated, ip);
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void redirectDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    String truncated = ehlo.substring(4) + "." + ehlo;
+    dns.txt("foo.com", "v=spf1 redirect=%{h}.%{h}").txt(truncated, "v=spf1 +all");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals(ResultCode.Pass, result.getCode());
+  }
+
+  @Test
+  public void explanationDsTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    ehlo = ehlo.substring(0, ehlo.length() - 1);
+    String truncated = ehlo.substring(4) + "." + ehlo;
+    dns.txt("foo.com", "v=spf1 exp=%{h}.%{h} -all").txt(truncated, "nope");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals("foo.com explained: nope", result.getExplanation());
+  }
+
+  @Test
+  public void explanationTextNotTruncated() {
+    String ehlo = "foo.";
+    while (ehlo.length() < 128) {
+      ehlo += ehlo;
+    }
+    dns.txt("foo.com", "v=spf1 exp=exp.com -all").txt("exp.com", "%{h}%{h}");
+    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", ehlo);
+    assertEquals("foo.com explained: " + ehlo + ehlo, result.getExplanation());
   }
 
   // 4.6.1 mechanism and modifier names are case insensitve

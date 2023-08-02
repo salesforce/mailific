@@ -33,14 +33,6 @@ public class Directive {
     this.mechanism = mechanism;
   }
 
-  public Qualifier getQualifier() {
-    return qualifier;
-  }
-
-  public Mechanism getMechanism() {
-    return mechanism;
-  }
-
   public String toString() {
     return qualifier.getSymbol() + mechanism;
   }
