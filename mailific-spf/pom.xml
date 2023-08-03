@@ -46,6 +46,9 @@
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+    <excluded.tests>net.mailific.spf.test.LiveTests</excluded.tests>
+
+
     <!-- Dependency Versions -->
 
     <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
@@ -74,6 +77,9 @@
 
     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
     <maven-source-version>3.3.0</maven-source-version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+    <maven-surefire-version>3.1.2</maven-surefire-version>
 
     <!-- https://github.com/google/google-java-format/releases -->
     <google-java-format-version>1.17.0</google-java-format-version>
@@ -152,6 +158,12 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>LiveTests</id>
+      <properties>
+        <excluded.tests></excluded.tests>
+      </properties>
     </profile>
   </profiles>
 
@@ -277,6 +289,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-version}</version>
+        <configuration>
+          <excludedGroups>${excluded.tests}</excludedGroups>
+        </configuration>
       </plugin>
     </plugins>
   </build>

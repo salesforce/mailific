@@ -16,28 +16,6 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.main;
+package net.mailific.spf.test;
 
-import java.net.InetAddress;
-import java.util.stream.Stream;
-
-public class Main {
-
-  public static void main(String[] args) {
-    if (args == null
-        || Stream.of(args).anyMatch(s -> s.equals("-h"))
-        || args.length < 2
-        || args.length > 3) {
-      System.out.println("Usage: java -jar <path to jar> <ip> <sender>");
-      System.exit(1);
-    }
-
-    try {
-      InetAddress ip = InetAddress.getByName(args[0]);
-      String sender = args[1];
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-}
+public interface LiveTests {}
