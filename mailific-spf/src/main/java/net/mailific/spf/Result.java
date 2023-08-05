@@ -34,4 +34,8 @@ public class Result {
   public String getExplanation() {
     return explanation;
   }
+
+  public String toString() {
+    return String.format("%s: %s", code, explanation);
+  }
 }

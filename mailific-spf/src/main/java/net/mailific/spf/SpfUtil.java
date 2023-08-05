@@ -18,22 +18,47 @@
 
 package net.mailific.spf;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.List;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolver;
 
 public interface SpfUtil extends Spf {
 
+  public static final char[] HEX = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+  };
+
+  public static String ptrName(InetAddress ip) {
+    StringBuilder sb = new StringBuilder();
+    String[] bites = dotFormatIp(ip).split("[.]");
+    for (int i = bites.length - 1; i >= 0; i--) {
+      sb.append(bites[i]).append('.');
+    }
+    sb.append(ip instanceof Inet4Address ? "in-addr.arpa." : "ip6.arpa.");
+    return sb.toString();
+  }
+
+  public static String dotFormatIp(InetAddress ip) {
+    if (ip instanceof Inet4Address) {
+      return ip.getHostAddress();
+    }
+    byte[] bytes = ip.getAddress();
+    StringBuilder sb = new StringBuilder(62);
+    sb.append(HEX[(bytes[0] & 0xf0) >> 4]).append('.').append(HEX[bytes[0] & 0xF]);
+    for (int i = 1; i < bytes.length; i++) {
+      sb.append('.').append(HEX[(bytes[i] & 0xf0) >> 4]).append('.').append(HEX[bytes[i] & 0xF]);
+    }
+    return sb.toString();
+  }
+
   NameResolver getNameResolver();
 
-  String dotFormatIp(InetAddress ip);
-
-  List<String> resolveTxtRecords(String name) throws DnsFail, NameNotFound, Abort;
+  List<String> resolveTxtRecords(String name) throws DnsFail, Abort;
 
   String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
-      throws DnsFail, NameNotFound, Abort;
+      throws DnsFail, Abort;
 
   int incLookupCounter() throws Abort;
 

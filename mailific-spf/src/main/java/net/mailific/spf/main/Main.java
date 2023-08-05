@@ -20,6 +20,12 @@ package net.mailific.spf.main;
 
 import java.net.InetAddress;
 import java.util.stream.Stream;
+import net.mailific.spf.Result;
+import net.mailific.spf.Settings;
+import net.mailific.spf.Spf;
+import net.mailific.spf.SpfImp;
+import net.mailific.spf.dns.JndiResolver;
+import net.mailific.spf.dns.NameResolver;
 
 public class Main {
 
@@ -35,6 +41,15 @@ public class Main {
     try {
       InetAddress ip = InetAddress.getByName(args[0]);
       String sender = args[1];
+      String domain = sender.substring(sender.indexOf("@") + 1);
+      String ehlo = (args.length > 2) ? args[2] : domain;
+
+      NameResolver dns = new JndiResolver();
+      Settings settings = new Settings();
+      Spf spf = new SpfImp(dns, settings);
+      Result result = spf.checkHost(ip, domain, sender, ehlo);
+
+      System.out.println(result);
 
     } catch (Exception e) {
       e.printStackTrace();

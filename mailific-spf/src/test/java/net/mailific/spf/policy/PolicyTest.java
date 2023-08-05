@@ -20,10 +20,7 @@ package net.mailific.spf.policy;
 
 import static org.junit.Assert.assertEquals;
 
-import net.mailific.spf.test.LiveTests;
-import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 public class PolicyTest {
 
@@ -65,11 +62,5 @@ public class PolicyTest {
     // Will never happen if you create the policy by parsing, but just in case
     it = new Policy("v=spf1", null, null);
     assertEquals("v=spf1", it.toString());
-  }
-
-  @Category(LiveTests.class)
-  @Test
-  public void liveTest() {
-    Assert.fail("Live test.");
   }
 }

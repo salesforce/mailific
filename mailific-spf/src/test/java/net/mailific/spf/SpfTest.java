@@ -25,7 +25,6 @@ import static org.junit.Assert.assertEquals;
 import java.net.InetAddress;
 import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.dns.InvalidName;
-import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.TempDnsFail;
 import net.mailific.spf.test.MockDns;
 import org.junit.After;
@@ -133,14 +132,6 @@ public class SpfTest {
     dns.txt("foo.com", new TempDnsFail("Something happened"));
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(result.getCode(), ResultCode.Temperror);
-  }
-
-  // 4.5
-  @Test
-  public void nameNotFound() {
-    dns.txt("foo.com", new NameNotFound("foo.com"));
-    Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
-    assertEquals(ResultCode.None, result.getCode());
   }
 
   // 4.5
@@ -484,8 +475,7 @@ public class SpfTest {
   // 4.6.4
   @Test
   public void voidLookups_A_MX() {
-    dns.txt("foo.com", "v=spf1 a:no1.com a:no2.com mx:no3.com +all")
-        .a("no2.com", new NameNotFound("no2.com"));
+    dns.txt("foo.com", "v=spf1 a:no1.com a:no2.com mx:no3.com +all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
   }
@@ -499,8 +489,7 @@ public class SpfTest {
     dns.txt("foo.com", "v=spf1 mx +all")
         .mx("foo.com", "no1.com")
         .mx("foo.com", "no2.com")
-        .mx("foo.com", "no3.com")
-        .a("no2.com", new NameNotFound("no2.com"));
+        .mx("foo.com", "no3.com");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
   }
@@ -508,8 +497,7 @@ public class SpfTest {
   // 4.6.4
   @Test
   public void voidLookups_ptr_exists() {
-    dns.txt("foo.com", "v=spf1 ptr exists:no1.com exists:no2.com +all")
-        .a("no2.com", new NameNotFound("no2.com"));
+    dns.txt("foo.com", "v=spf1 ptr exists:no1.com exists:no2.com +all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
   }
@@ -520,8 +508,7 @@ public class SpfTest {
     dns.txt("foo.com", "v=spf1 ptr +all")
         .ptr("4.3.2.1.in-addr.arpa", "no1.foo.com")
         .ptr("4.3.2.1.in-addr.arpa", "no2.foo.com")
-        .ptr("4.3.2.1.in-addr.arpa", "no3.foo.com")
-        .a("no2.com", new NameNotFound("no2.com"));
+        .ptr("4.3.2.1.in-addr.arpa", "no3.foo.com");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Permerror, result.getCode());
   }
@@ -565,8 +552,7 @@ public class SpfTest {
 
   @Test
   public void ptrNotFound() {
-    dns.txt("foo.com", "v=spf1 ~ptr -all")
-        .ptr("4.3.2.1.in-addr.arpa", new NameNotFound("4.3.2.1.in-addr.arpa"));
+    dns.txt("foo.com", "v=spf1 ~ptr -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
   }
@@ -736,7 +722,7 @@ public class SpfTest {
 
   @Test
   public void mx_notFound() {
-    dns.txt("foo.com", "v=spf1 ~mx:bar.com -all").mx("bar.com", new NameNotFound("bar.com"));
+    dns.txt("foo.com", "v=spf1 ~mx:bar.com -all");
     Result result = it.checkHost(ip, "foo.com", "sender@foo.com", "bar.baz");
     assertEquals(ResultCode.Fail, result.getCode());
   }

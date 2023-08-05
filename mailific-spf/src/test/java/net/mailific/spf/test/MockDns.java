@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolver;
 
 public class MockDns implements NameResolver {
@@ -39,7 +38,6 @@ public class MockDns implements NameResolver {
   Map<String, List<Object>> ptr = new HashMap<>();
 
   public MockDns a(String name, Object ipOrException) {
-    System.out.println("add a: " + name + " -> " + ipOrException);
     a.compute(dot(name), def).add(ipOrException);
     return this;
   }
@@ -68,12 +66,11 @@ public class MockDns implements NameResolver {
   }
 
   @Override
-  public List<String> resolveTxtRecords(String name) throws DnsFail, NameNotFound {
+  public List<String> resolveTxtRecords(String name) throws DnsFail {
     return resolve(txt, name);
   }
 
-  public List<String> resolve(Map<String, List<Object>> map, String name)
-      throws DnsFail, NameNotFound {
+  public List<String> resolve(Map<String, List<Object>> map, String name) throws DnsFail {
     List<Object> things = map.get(dot(name));
     if (things == null) {
       return Collections.emptyList();
@@ -87,12 +84,9 @@ public class MockDns implements NameResolver {
     return rv;
   }
 
-  private void throwIfException(Object o) throws DnsFail, NameNotFound {
+  private void throwIfException(Object o) throws DnsFail {
     if (o instanceof DnsFail) {
       throw (DnsFail) o;
-    }
-    if (o instanceof NameNotFound) {
-      throw (NameNotFound) o;
     }
     if (o instanceof RuntimeException) {
       throw (RuntimeException) o;
@@ -102,8 +96,7 @@ public class MockDns implements NameResolver {
     }
   }
 
-  public List<InetAddress> resolveIp(Map<String, List<Object>> map, String name)
-      throws DnsFail, NameNotFound {
+  public List<InetAddress> resolveIp(Map<String, List<Object>> map, String name) throws DnsFail {
     List<Object> things = map.get(dot(name));
     if (things == null) {
       return Collections.emptyList();
@@ -125,23 +118,22 @@ public class MockDns implements NameResolver {
   }
 
   @Override
-  public List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound {
-    System.out.println("Lookup A: " + name);
+  public List<InetAddress> resolveARecords(String name) throws DnsFail {
     return resolveIp(a, name);
   }
 
   @Override
-  public List<InetAddress> resolveAAAARecords(String name) throws DnsFail, NameNotFound {
+  public List<InetAddress> resolveAAAARecords(String name) throws DnsFail {
     return resolveIp(aaaa, name);
   }
 
   @Override
-  public List<String> resolveMXRecords(String name) throws DnsFail, NameNotFound {
+  public List<String> resolveMXRecords(String name) throws DnsFail {
     return resolve(mx, name);
   }
 
   @Override
-  public List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound {
+  public List<String> resolvePtrRecords(String name) throws DnsFail {
     return resolve(ptr, name);
   }
 

@@ -32,7 +32,7 @@ public class Ip extends Macro {
   @Override
   public String innerExpand(
       SpfUtil spf, InetAddress ip, String domain, String sender, String ehloParam) {
-    String dotted = spf.dotFormatIp(ip);
+    String dotted = SpfUtil.dotFormatIp(ip);
     return transform(dotted, getRightParts(), isReverse(), getDelimiter());
   }
 

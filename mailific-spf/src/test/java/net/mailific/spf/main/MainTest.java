@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package net.mailific.spf.dns;
+package net.mailific.spf.main;
 
-public class NameNotFound extends DnsFail {
+import net.mailific.spf.test.LiveTests;
+import org.junit.experimental.categories.Category;
 
-  public NameNotFound(String name) {
-    super("DNS name not found: " + name);
-  }
-}
+@Category(LiveTests.class)
+public class MainTest {}

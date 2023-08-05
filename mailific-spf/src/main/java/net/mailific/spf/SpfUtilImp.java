@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import net.mailific.spf.dns.DnsFail;
 import net.mailific.spf.dns.InvalidName;
-import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolver;
 import net.mailific.spf.dns.RuntimeDnsFail;
 import net.mailific.spf.parser.ParseException;
@@ -37,10 +36,6 @@ import net.mailific.spf.policy.PolicySyntaxException;
 
 /** Stateful class that tracks the current SPF check and provides needed utilities. */
 public class SpfUtilImp implements SpfUtil {
-
-  public static final char[] HEX = {
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-  };
 
   private int lookupsUsed = 0;
   private int voidLookupsUsed = 0;
@@ -85,10 +80,8 @@ public class SpfUtilImp implements SpfUtil {
       }
       return result;
     } catch (ParseException | PolicySyntaxException e) {
-      e.printStackTrace();
       return new Result(ResultCode.Permerror, "Invalid spf record syntax.");
     } catch (Abort e) {
-      e.printStackTrace();
       return e.result;
     }
   }
@@ -149,31 +142,6 @@ public class SpfUtilImp implements SpfUtil {
     return resolver;
   }
 
-  @Override
-  public String dotFormatIp(InetAddress ip) {
-    if (ip instanceof Inet4Address) {
-      return ip.getHostAddress();
-    }
-    byte[] bytes = ip.getAddress();
-    StringBuilder sb = new StringBuilder(62);
-    sb.append(HEX[(bytes[0] & 0xf0) >> 4]).append('.').append(HEX[bytes[0] & 0xF]);
-    for (int i = 1; i < bytes.length; i++) {
-      sb.append('.').append(HEX[(bytes[i] & 0xf0) >> 4]).append('.').append(HEX[bytes[i] & 0xF]);
-    }
-    return sb.toString();
-  }
-
-  // @Override
-  public String ptrName(InetAddress ip) {
-    StringBuilder sb = new StringBuilder();
-    String[] bites = dotFormatIp(ip).split("[.]");
-    for (int i = bites.length - 1; i >= 0; i--) {
-      sb.append(bites[i]).append('.');
-    }
-    sb.append(ip instanceof Inet4Address ? "in-addr.arpa." : "ip6.arpa.");
-    return sb.toString();
-  }
-
   /**
    * @param ip
    * @param domain
@@ -184,14 +152,9 @@ public class SpfUtilImp implements SpfUtil {
   @Override
   public String validatedHostForIp(InetAddress ip, String domain, boolean requireMatch)
       throws DnsFail, Abort {
-    String ptrName = ptrName(ip);
-    List<String> results = null;
-    try {
-      results = getNameResolver().resolvePtrRecords(ptrName);
-    } catch (NameNotFound e) {
-      // Do nothing -- leave results null
-    }
-    if (results == null || results.isEmpty()) {
+    String ptrName = SpfUtil.ptrName(ip);
+    List<String> results = getNameResolver().resolvePtrRecords(ptrName);
+    if (results.isEmpty()) {
       incVoidLookupCounter();
       return null;
     }
@@ -255,13 +218,8 @@ public class SpfUtilImp implements SpfUtil {
 
   @Override
   public List<InetAddress> getIpsByMxName(String name, boolean ip4) throws DnsFail, Abort {
-    List<String> names = null;
-    try {
-      names = getNameResolver().resolveMXRecords(name);
-    } catch (NameNotFound e) {
-      // Do nothing
-    }
-    if (names == null || names.isEmpty()) {
+    List<String> names = getNameResolver().resolveMXRecords(name);
+    if (names.isEmpty()) {
       incVoidLookupCounter();
       return Collections.emptyList();
     }
@@ -294,17 +252,9 @@ public class SpfUtilImp implements SpfUtil {
   }
 
   public List<InetAddress> getIpsByHostname(String name, boolean ip4) throws DnsFail, Abort {
-    List<InetAddress> rv = null;
-    try {
-      if (ip4) {
-        rv = getNameResolver().resolveARecords(name);
-      } else {
-        rv = getNameResolver().resolveAAAARecords(name);
-      }
-    } catch (NameNotFound e) {
-      // Do nothing
-    }
-    if (rv == null || rv.isEmpty()) {
+    List<InetAddress> rv =
+        ip4 ? getNameResolver().resolveARecords(name) : getNameResolver().resolveAAAARecords(name);
+    if (rv.isEmpty()) {
       incVoidLookupCounter();
       return Collections.emptyList();
     }
@@ -357,17 +307,8 @@ public class SpfUtilImp implements SpfUtil {
    * gotten a failure and are just trying to look up the explanation.
    */
   @Override
-  public List<String> resolveTxtRecords(String name) throws DnsFail, Abort {
-    List<String> rv = null;
-    try {
-      rv = getNameResolver().resolveTxtRecords(name);
-    } catch (NameNotFound e) {
-      // Do nothing
-    }
-    if (rv == null || rv.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return rv;
+  public List<String> resolveTxtRecords(String name) throws DnsFail {
+    return getNameResolver().resolveTxtRecords(name);
   }
 
   @Override

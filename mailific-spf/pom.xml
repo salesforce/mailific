@@ -81,6 +81,9 @@
     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
     <maven-surefire-version>3.1.2</maven-surefire-version>
 
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
+    <maven-assembly-version>3.6.0</maven-assembly-version>
+
     <!-- https://github.com/google/google-java-format/releases -->
     <google-java-format-version>1.17.0</google-java-format-version>
 
@@ -287,6 +290,32 @@
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>${maven-assembly-version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>
+                    net.mailific.spf.main.Main
+                  </mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
           </execution>
         </executions>
       </plugin>

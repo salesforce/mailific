@@ -28,19 +28,19 @@ public interface NameResolver {
    * @return A list of Strings. Each returned String corresponds to one TXT record found. If a TXT
    *     record had multiple Strings, those strings are concatenated, without adding any space
    *     between them, and the results added to the list as a single String.
+   *     <p>If the name does not exist, or it has no txt records, an empty list will be returned.
    * @throws DnsFail
-   * @throws NameNotFound
    */
-  List<String> resolveTxtRecords(String name) throws DnsFail, NameNotFound;
+  List<String> resolveTxtRecords(String name) throws DnsFail;
 
-  List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound;
+  List<InetAddress> resolveARecords(String name) throws DnsFail;
 
-  List<InetAddress> resolveAAAARecords(String name) throws DnsFail, NameNotFound;
+  List<InetAddress> resolveAAAARecords(String name) throws DnsFail;
 
-  List<String> resolveMXRecords(String name) throws DnsFail, NameNotFound;
+  List<String> resolveMXRecords(String name) throws DnsFail;
 
   /**
    * @param name The name of the PTR record (e.g. 4.3.2.1.in-addr.arpa)
    */
-  List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound;
+  List<String> resolvePtrRecords(String name) throws DnsFail;
 }

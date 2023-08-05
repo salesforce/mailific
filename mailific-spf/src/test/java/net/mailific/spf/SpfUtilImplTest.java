@@ -25,7 +25,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import net.mailific.spf.dns.DnsFail;
-import net.mailific.spf.dns.NameNotFound;
 import net.mailific.spf.dns.NameResolver;
 import org.junit.After;
 import org.junit.Before;
@@ -117,7 +116,7 @@ public class SpfUtilImplTest {
   }
 
   @Test
-  public void nullSpfRecord() throws NameNotFound, DnsFail {
+  public void nullSpfRecord() throws DnsFail {
     List<String> records = new ArrayList<>();
     records.add(null);
     when(resolver.resolveTxtRecords("foo.com")).thenReturn(records);

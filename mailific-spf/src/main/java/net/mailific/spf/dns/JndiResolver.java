@@ -38,7 +38,7 @@ public class JndiResolver implements NameResolver {
 
   // TODO: IC provider for spring. Reuse ICs.
 
-  private static final String DNSURL = "dns://%s/example.com";
+  private static final String DNSURL = "dns://%s";
   private static final String[] TXT = {"TXT"};
   private static final String[] A = {"A"};
   private static final String[] AAAA = {"AAAA"};
@@ -70,7 +70,7 @@ public class JndiResolver implements NameResolver {
 
   @Override
   public List<String> resolveTxtRecords(String name) throws DnsFail {
-    return resolve(name, TXT, String::valueOf);
+    return resolve(name, TXT, JndiResolver::stripQuotes);
   }
 
   public <T> List<T> resolve(String name, String[] type, Function<Object, T> mapper)
@@ -84,6 +84,8 @@ public class JndiResolver implements NameResolver {
           rv.add(mapper.apply(values.next()));
         }
       }
+    } catch (NameNotFoundException e) {
+      // Do nothing -- return empty
     } catch (NamingException e) {
       mapToDnsFail(e, name);
     }
@@ -99,7 +101,7 @@ public class JndiResolver implements NameResolver {
   }
 
   @Override
-  public List<InetAddress> resolveARecords(String name) throws DnsFail, NameNotFound {
+  public List<InetAddress> resolveARecords(String name) throws DnsFail {
     try {
       return resolve(name, A, JndiResolver::mapFromLookup);
     } catch (ShouldNotOccur e) {
@@ -108,7 +110,7 @@ public class JndiResolver implements NameResolver {
   }
 
   @Override
-  public List<InetAddress> resolveAAAARecords(String name) throws DnsFail, NameNotFound {
+  public List<InetAddress> resolveAAAARecords(String name) throws DnsFail {
     try {
       return resolve(name, AAAA, JndiResolver::mapFromLookup);
     } catch (ShouldNotOccur e) {
@@ -117,20 +119,18 @@ public class JndiResolver implements NameResolver {
   }
 
   @Override
-  public List<String> resolveMXRecords(String name) throws DnsFail, NameNotFound {
+  public List<String> resolveMXRecords(String name) throws DnsFail {
     return resolve(name, MX, o -> undot(o).split(" ")[1]);
   }
 
   @Override
-  public List<String> resolvePtrRecords(String name) throws DnsFail, NameNotFound {
+  public List<String> resolvePtrRecords(String name) throws DnsFail {
     return resolve(name, PTR, JndiResolver::undot);
   }
 
   private void mapToDnsFail(NamingException namingException, String name) throws DnsFail {
     try {
       throw namingException;
-    } catch (NameNotFoundException e) {
-      throw new NameNotFound(name);
     } catch (InvalidNameException e) {
       throw new InvalidName(name, e.getMessage());
     } catch (NamingException e) {
@@ -152,5 +152,16 @@ public class JndiResolver implements NameResolver {
     }
     String s = String.valueOf(hostname);
     return s.endsWith(".") ? s.substring(0, s.length() - 1) : s;
+  }
+
+  public static final String stripQuotes(Object o) {
+    if (o == null) {
+      return null;
+    }
+    String s = String.valueOf(o);
+    if (s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
+      return s.substring(1, s.length() - 1);
+    }
+    return s;
   }
 }
