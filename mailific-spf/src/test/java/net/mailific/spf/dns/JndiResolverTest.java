@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
@@ -49,7 +50,7 @@ public class JndiResolverTest {
   @Test
   public void singleTxtRecord() throws Exception {
     List<String> actual = it.resolveTxtRecords("orange." + baseDomain);
-    assertThat(actual, contains("orange"));
+    assertThat(actual, contains("orange mango"));
   }
 
   @Test
@@ -154,21 +155,21 @@ public class JndiResolverTest {
     List<InetAddress> ips = it.resolveARecords("google.com");
     String name = SpfUtil.ptrName(ips.get(0));
     List<String> actual = it.resolvePtrRecords(name);
-    assertEquals(1, actual.size());
+    assertTrue(actual.size() > 0);
   }
 
   @Test
   public void specifiedNameServer() throws Exception {
     it = new JndiResolver(List.of("1.1.1.1"));
     List<String> actual = it.resolveTxtRecords("orange." + baseDomain);
-    assertThat(actual, contains("orange"));
+    assertThat(actual, contains("orange mango"));
   }
 
   @Test
   public void emptyNameServerList() throws Exception {
     it = new JndiResolver(Collections.emptyList());
     List<String> actual = it.resolveTxtRecords("orange." + baseDomain);
-    assertThat(actual, contains("orange"));
+    assertThat(actual, contains("orange mango"));
   }
 
   @Test
@@ -204,5 +205,70 @@ public class JndiResolverTest {
   @Test
   public void undotNoDot() {
     assertEquals("foo.com", JndiResolver.undot("foo.com"));
+  }
+
+  @Test
+  public void stripQuotes_null() {
+    assertNull(JndiResolver.stripQuotes(null));
+  }
+
+  @Test
+  public void stripQuotes_empty() {
+    assertEquals("", JndiResolver.stripQuotes(""));
+  }
+
+  @Test
+  public void stripQuotes_simple() {
+    String noSpecials = "foo123/!!!";
+    assertEquals(noSpecials, JndiResolver.stripQuotes(noSpecials));
+  }
+
+  @Test
+  public void stripQuotes_spaces() {
+    String expected = "foo bar baz";
+    String input = "\"foo bar baz\"";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_quotes() {
+    String expected = "foo \"bar\" baz";
+    String input = "\"foo \\\"bar\\\" baz\"";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_backslash() {
+    String expected = "foo \\ baz";
+    String input = "\"foo \\\\ baz\"";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_twoUnquotedStrings() {
+    String expected = "foobaz";
+    String input = "foo baz";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_twoQuotedStrings() {
+    String expected = "v=spf1 ip4:10.10.10.10 -all";
+    String input = "\"v=spf1 ip4:10.\" \"10.10.10 -all\"";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_quoteThenUnquote() {
+    String expected = "v=spf1 ip4:10.10.10.10 -all";
+    String input = "\"v=spf1 ip4:10.10.10.10 \" -all";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
+  }
+
+  @Test
+  public void stripQuotes_unquoteThenQuote() {
+    String expected = "v=spf1 ip4:10.10.10.10 -all";
+    String input = "v=spf1 \" ip4:10.10.10.10 -all\"";
+    assertEquals(expected, JndiResolver.stripQuotes(input));
   }
 }

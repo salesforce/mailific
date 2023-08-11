@@ -47,6 +47,32 @@ public class JndiResolver implements NameResolver {
 
   private InitialDirContext ic;
 
+  public static void main(String[] args) {
+    try {
+      switch (args[0].toUpperCase()) {
+        case "TXT":
+          System.out.println(new JndiResolver().resolveTxtRecords(args[1]));
+          break;
+        case "A":
+          System.out.println(new JndiResolver().resolveARecords(args[1]));
+          break;
+        case "AAAA":
+          System.out.println(new JndiResolver().resolveARecords(args[1]));
+          break;
+        case "MX":
+          System.out.println(new JndiResolver().resolveMXRecords(args[1]));
+          break;
+        case "PTR":
+          System.out.println(new JndiResolver().resolvePtrRecords(args[1]));
+          break;
+        default:
+          System.out.println(new JndiResolver().resolveARecords(args[0]));
+      }
+    } catch (DnsFail e) {
+      e.printStackTrace();
+    }
+  }
+
   public JndiResolver() {
     this(null);
   }
@@ -70,7 +96,11 @@ public class JndiResolver implements NameResolver {
 
   @Override
   public List<String> resolveTxtRecords(String name) throws DnsFail {
-    return resolve(name, TXT, JndiResolver::stripQuotes);
+    try {
+      return resolve(name, TXT, JndiResolver::stripQuotes);
+    } catch (ShouldNotOccur e) {
+      throw new DnsFail(String.format("Failed TXT lookup for %s: %s", name, e.getMessage()));
+    }
   }
 
   public <T> List<T> resolve(String name, String[] type, Function<Object, T> mapper)
@@ -81,7 +111,9 @@ public class JndiResolver implements NameResolver {
       for (NamingEnumeration<? extends Attribute> all = atts.getAll(); all.hasMore(); ) {
         Attribute att = all.next();
         for (NamingEnumeration<?> values = att.getAll(); values.hasMore(); ) {
-          rv.add(mapper.apply(values.next()));
+          Object value = values.next();
+          System.out.println(String.format("-->{%s}<--", value));
+          rv.add(mapper.apply(value));
         }
       }
     } catch (NameNotFoundException e) {
@@ -154,14 +186,69 @@ public class JndiResolver implements NameResolver {
     return s.endsWith(".") ? s.substring(0, s.length() - 1) : s;
   }
 
+  private static enum TxtStates {
+    UNQUOTED,
+    IN_QUOTE,
+    AFTER_QUOTE,
+    ESCAPING
+  }
+
   public static final String stripQuotes(Object o) {
     if (o == null) {
       return null;
     }
     String s = String.valueOf(o);
-    if (s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
-      return s.substring(1, s.length() - 1);
+
+    TxtStates state = TxtStates.UNQUOTED;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      switch (c) {
+        case '"':
+          switch (state) {
+            case ESCAPING:
+              sb.append(c);
+              state = TxtStates.IN_QUOTE;
+              break;
+            case IN_QUOTE:
+              state = TxtStates.AFTER_QUOTE;
+              break;
+            default:
+              state = TxtStates.IN_QUOTE;
+              break;
+          }
+          break;
+        case ' ':
+          switch (state) {
+            case IN_QUOTE:
+              sb.append(c);
+              break;
+            case AFTER_QUOTE:
+              state = TxtStates.UNQUOTED;
+              break;
+            case UNQUOTED:
+              break;
+            default:
+              throw new ShouldNotOccur(String.format("Could not parse txt rr: %s", s));
+          }
+          break;
+        case '\\':
+          switch (state) {
+            case ESCAPING:
+              sb.append(c);
+              state = TxtStates.IN_QUOTE;
+              break;
+            case IN_QUOTE:
+              state = TxtStates.ESCAPING;
+              break;
+            default:
+              throw new ShouldNotOccur(String.format("Could not parse txt rr: %s", s));
+          }
+          break;
+        default:
+          sb.append(c);
+      }
     }
-    return s;
+    return sb.toString();
   }
 }
