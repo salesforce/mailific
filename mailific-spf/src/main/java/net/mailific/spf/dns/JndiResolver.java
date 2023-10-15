@@ -112,7 +112,6 @@ public class JndiResolver implements NameResolver {
         Attribute att = all.next();
         for (NamingEnumeration<?> values = att.getAll(); values.hasMore(); ) {
           Object value = values.next();
-          System.out.println(String.format("-->{%s}<--", value));
           rv.add(mapper.apply(value));
         }
       }
