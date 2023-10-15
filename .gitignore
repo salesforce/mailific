@@ -6,3 +6,4 @@ target/
 /.mvn
 /examples/springboot/.classpath
 /examples/springboot/.project
+/mailific-server-spring-boot/.factorypath
