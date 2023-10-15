@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
 
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>
@@ -48,38 +48,8 @@
 
     <!-- Dependency Versions -->
 
-    <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
-    <spotless-version>2.37.0</spotless-version>
-
-    <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-    <jacoco-version>0.8.10</jacoco-version>
-
-    <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
-    <netty-version>4.1.94.Final</netty-version>
-
-    <!-- https://mvnrepository.com/artifact/junit/junit -->
-    <junit-version>4.13.2</junit-version>
-
-    <!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest -->
-    <hamcrest-version>2.2</hamcrest-version>
-
-    <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
-    <mockito-version>5.4.0</mockito-version>
-
-    <!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
-    <nexus-staging-version>1.6.13</nexus-staging-version>
-
-    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
-    <maven-gpg-version>3.1.0</maven-gpg-version>
-
-    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-    <maven-javadoc-version>3.5.0</maven-javadoc-version>
-
-    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
-    <maven-source-version>3.3.0</maven-source-version>
-
     <!-- https://github.com/google/google-java-format/releases -->
-    <google-java-format-version>1.17.0</google-java-format-version>
+    <google-java-format-version>1.18.1</google-java-format-version>
 
   </properties>
 
@@ -91,7 +61,7 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>${nexus-staging-version}</version>
+            <version>1.6.13</version>
             <extensions>true</extensions>
             <configuration>
               <serverId>ossrh</serverId>
@@ -102,7 +72,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>${maven-gpg-version}</version>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -116,7 +86,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>${maven-javadoc-version}</version>
+            <version>3.6.0</version>
             <executions>
               <execution>
                 <id>attach-javadoc</id>
@@ -129,7 +99,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>${maven-source-version}</version>
+            <version>3.3.0</version>
             <executions>
               <execution>
                 <id>attach-source</id>
@@ -148,7 +118,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>${netty-version}</version>
+      <version>4.1.100.Final</version>
     </dependency>
 
   <!--  TEST DEPENDENCIES -->
@@ -156,19 +126,19 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit-version}</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
-      <version>${hamcrest-version}</version>
+      <version>2.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${mockito-version}</version>
+      <version>5.6.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -179,7 +149,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>${spotless-version}</version>
+        <version>2.40.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
@@ -207,7 +177,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${jacoco-version}</version>
+        <version>0.8.10</version>
         <executions>
           <execution>
             <goals>
