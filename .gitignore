@@ -1,9 +1,8 @@
 /.checkstyle
 /.classpath
-/.project
+**/.project
 .settings
 target/
 /.mvn
 /examples/springboot/.classpath
-/examples/springboot/.project
 /mailific-server-spring-boot/.factorypath
