@@ -65,7 +65,7 @@ public class MainTest {
   public void defaults() throws Exception {
     Main.main(new String[0]);
     assertNotNull(Main.getServer());
-    Main.getServer().shutdown();
+    Main.getServer().shutdown().get();
 
     // Stupid, but just for coverage
     new Main();
@@ -111,7 +111,7 @@ public class MainTest {
             });
     assertNotNull(server);
     // TODO check STARTTLS offered
-    server.shutdown();
+    server.shutdown().get();
   }
 
   @Test
@@ -138,7 +138,7 @@ public class MainTest {
     SmtpServer server = Main.run(new String[] {"--auth"});
     assertNotNull(server);
     // TODO check AUTH offered
-    server.shutdown();
+    server.shutdown().get();
   }
 
   @Test

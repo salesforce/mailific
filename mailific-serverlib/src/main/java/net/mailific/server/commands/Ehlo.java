@@ -75,7 +75,8 @@ public class Ehlo extends BaseHandler {
   @Override
   public Transition handleValidCommand(SmtpSession session, String commandLine) {
     session.clearMailObject();
-    ExtendedReply.Builder replyBuilder = new ExtendedReply.Builder(250).withDetail(getBanner());
+    ExtendedReply.Builder replyBuilder =
+        new ExtendedReply.Builder(250).withDetail(getDetail(session));
     for (Extension extension : extensionsToPresent(session)) {
       replyBuilder.withDetail(extension.getEhloAdvertisment(session));
     }
@@ -107,8 +108,37 @@ public class Ehlo extends BaseHandler {
     return new ParsedCommandLine(commandLine, verb(), path, params);
   }
 
+  private String getDetail(SmtpSession session) {
+    // Originally, I only provided the version of getBanner() with no parameters
+    // This is just a little hack to provide backward compatibility but prefer
+    // the new version that makes the session available.
+    String detail = getBanner(session);
+    if (detail == null) {
+      detail = getBanner();
+    }
+    return detail;
+  }
+
   /**
    * Extension point
+   *
+   * <p>If this method returns non-null, it is used in preference to {@link #getBanner()}
+   *
+   * @return the text for the first line of the OK response. Per rfc5321.4.1.1.1, this should
+   *     consist of the domain, optionally followed by a space and an ASCII greeting
+   */
+  protected String getBanner(SmtpSession session) {
+    return null;
+  }
+
+  /**
+   * Extension point
+   *
+   * <p>This method is never called if {@link #getBanner(SmtpSession)} is overridden to return a
+   * non-null value.
+   *
+   * <p>(The latter method was added later, and this method is kept around just for backward
+   * compatibility.)
    *
    * @return the text for the first line of the OK response. Per rfc5321.4.1.1.1, this should
    *     consist of the domain, optionally followed by a space and an ASCII greeting

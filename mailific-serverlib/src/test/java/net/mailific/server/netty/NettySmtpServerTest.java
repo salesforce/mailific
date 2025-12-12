@@ -41,7 +41,7 @@ public class NettySmtpServerTest {
 
   @After
   public void teardown() throws Exception {
-    it.shutdown();
+    it.shutdown().get();
   }
 
   @Test

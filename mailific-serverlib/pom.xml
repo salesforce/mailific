@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
 
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>
@@ -49,7 +49,7 @@
     <!-- Dependency Versions -->
 
     <!-- https://github.com/google/google-java-format/releases -->
-    <google-java-format-version>1.18.1</google-java-format-version>
+    <google-java-format-version>1.28.0</google-java-format-version>
 
   </properties>
 
@@ -72,7 +72,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.2.7</version>
+            <version>3.2.8</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -86,7 +86,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.11.1</version>
+            <version>3.12.0</version>
             <executions>
               <execution>
                 <id>attach-javadoc</id>
@@ -99,7 +99,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.3.1</version>
+            <version>3.4.0</version>
             <executions>
               <execution>
                 <id>attach-source</id>
@@ -114,11 +114,13 @@
     </profile>
   </profiles>
 
+
+
   <dependencies>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.1.114.Final</version>
+      <version>4.2.7.Final</version>
     </dependency>
 
   <!--  TEST DEPENDENCIES -->
@@ -138,7 +140,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.14.2</version>
+      <version>5.21.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -149,7 +151,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>2.43.0</version>
+        <version>3.1.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
@@ -177,7 +179,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.12</version>
+        <version>0.8.13</version>
         <executions>
           <execution>
             <goals>

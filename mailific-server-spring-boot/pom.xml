@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-server-spring-boot</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
 
   <name>Mailific Server Spring Boot Configuration</name>
   <description>Spring Auto Configuration for Mailific SMTP Server</description>
@@ -48,10 +48,8 @@
 
     <!-- Dependency Versions -->
 
-    <mailific-serverlib-version>1.0.4</mailific-serverlib-version>
-
     <!-- https://github.com/google/google-java-format/releases -->
-    <google-java-format-version>1.18.1</google-java-format-version>
+    <google-java-format-version>1.28.0</google-java-format-version>
 
   </properties>
 
@@ -75,7 +73,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.2.7</version>
+            <version>3.2.8</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -93,7 +91,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.11.1</version>
+            <version>3.12.0</version>
             <executions>
               <execution>
                 <id>attach-javadoc</id>
@@ -106,7 +104,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.3.1</version>
+            <version>3.4.0</version>
             <executions>
               <execution>
                 <id>attach-source</id>
@@ -126,25 +124,25 @@
     <dependency>
       <groupId>net.mailific</groupId>
       <artifactId>mailific-serverlib</artifactId>
-      <version>1.0.6</version>
+      <version>1.0.7</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>6.1.20</version>
+      <version>7.0.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>3.3.5</version>
+      <version>4.0.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure-processor</artifactId>
-      <version>3.3.5</version>
+      <version>4.0.0</version>
       <optional>true</optional>
     </dependency>
   </dependencies>
@@ -154,12 +152,12 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.3.5</version>
+        <version>4.0.0</version>
       </plugin>
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>2.43.0</version>
+        <version>3.1.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
