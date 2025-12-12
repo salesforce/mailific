@@ -129,6 +129,22 @@ public class EhloTest {
   }
 
   @Test
+  public void sessionBasedBanner() {
+    when(session.getProperty("foo")).thenReturn("bar");
+
+    it =
+        new Ehlo("domain", "greeting") {
+          public String getBanner(SmtpSession session) {
+            return "foo" + session.getProperty("foo");
+          }
+        };
+
+    Transition t = it.handleValidCommand(session, "EHLO example.com");
+
+    assertEquals("250 foobar\r\n", t.getReply().replyString());
+  }
+
+  @Test
   public void withParams() {
     it = new Ehlo("domain", "greeting");
     ArgumentCaptor<ParsedCommandLine> pclArgument =

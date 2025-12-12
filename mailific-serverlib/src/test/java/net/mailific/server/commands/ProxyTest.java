@@ -18,7 +18,6 @@
 
 package net.mailific.server.commands;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,53 +35,53 @@ import org.mockito.MockitoAnnotations;
 
 public class ProxyTest {
 
-    @Mock SmtpSession session;
+  @Mock SmtpSession session;
 
-    Proxy it;
+  Proxy it;
 
-    private AutoCloseable closeable;
+  private AutoCloseable closeable;
 
-    @Before
-    public void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
+  @Before
+  public void setUp() {
+    closeable = MockitoAnnotations.openMocks(this);
 
-        it = new Proxy();
+    it = new Proxy();
+  }
+
+  @After
+  public void releaseMocks() throws Exception {
+    closeable.close();
+  }
+
+  @Test
+  public void happyPath() {
+    Transition t = it.handleValidCommand(session, "PROXY TCP6 5::ffff d::ffff 5555 2222");
+
+    verify(session).setProperty(Proxy.SESSION_CLIENTIP_PROPERTY, "5::ffff");
+    assertThat(t, TransitionMatcher.with(Reply.DO_NOT_REPLY, SessionState.NO_STATE_CHANGE));
+  }
+
+  @Test
+  public void badParams() {
+    Transition t = it.handleValidCommand(session, "PROXY TCP6 5::ffff d::ffff 5555");
+    assertThat(t, TransitionMatcher.with(Reply.DO_NOT_REPLY, SessionState.NO_STATE_CHANGE));
+  }
+
+  @Test
+  public void validForState() {
+    for (StandardStates state : EnumSet.allOf(StandardStates.class)) {
+      switch (state) {
+        case CONNECTED:
+          assertTrue(it.validForState(state));
+          break;
+        default:
+          assertFalse(it.validForState(state));
+      }
     }
+  }
 
-    @After
-    public void releaseMocks() throws Exception {
-        closeable.close();
-    }
-
-    @Test
-    public void happyPath() {
-        Transition t = it.handleValidCommand(session, "PROXY TCP6 5::ffff d::ffff 5555 2222");
-
-        verify(session).setProperty(Proxy.SESSION_CLIENTIP_PROPERTY, "5::ffff");
-        assertThat(t, TransitionMatcher.with(Reply.DO_NOT_REPLY, SessionState.NO_STATE_CHANGE));
-    }
-
-    @Test
-    public void badParams() {
-        Transition t = it.handleValidCommand(session, "PROXY TCP6 5::ffff d::ffff 5555");
-        assertThat(t, TransitionMatcher.with(Reply.DO_NOT_REPLY, SessionState.NO_STATE_CHANGE));
-    }
-
-    @Test
-    public void validForState() {
-        for (StandardStates state : EnumSet.allOf(StandardStates.class)) {
-            switch (state) {
-                case CONNECTED:
-                    assertTrue(it.validForState(state));
-                    break;
-                default:
-                    assertFalse(it.validForState(state));
-            }
-        }
-    }
-
-    @Test
-    public void command() {
-        assertEquals("PROXY", it.verb());
-    }
+  @Test
+  public void command() {
+    assertEquals("PROXY", it.verb());
+  }
 }
