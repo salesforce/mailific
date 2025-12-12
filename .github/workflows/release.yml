@@ -12,7 +12,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'zulu'
-          server-id: ossrh
+          server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
           cache: maven
@@ -23,10 +23,11 @@ jobs:
           printf "$GPG_SIGNING_KEY" | base64 --decode > ~/.gnupg/private.key
           gpg --batch --import --passphrase "$GPG_PASSPHRASE" ~/.gnupg/private.key
         env:
-          GPG_SIGNING_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Publish package
-        run: mvn -Prelease --batch-mode deploy -Dgpg.passphrase=${{ secrets.JRELEASER_GPG_PASSPHRASE }} --projects mailific-serverlib,mailific-server-spring-boot
+        run: mvn -Prelease --batch-mode package gpg:sign deploy --projects mailific-serverlib,mailific-server-spring-boot
         env:
           MAVEN_USERNAME: ${{ secrets.JRELEASER_NEXUS2_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.JRELEASER_NEXUS2_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
