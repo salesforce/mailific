@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-server-spring-boot</artifactId>
-  <version>1.0.7</version>
+  <version>1.0.8</version>
 
   <name>Mailific Server Spring Boot Configuration</name>
   <description>Spring Auto Configuration for Mailific SMTP Server</description>
@@ -53,10 +53,11 @@
           <plugin>
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.9.0</version>
+            <version>0.11.0</version>
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
             </configuration>
           </plugin>
           <plugin>
@@ -113,25 +114,25 @@
     <dependency>
       <groupId>net.mailific</groupId>
       <artifactId>mailific-serverlib</artifactId>
-      <version>1.0.7</version>
+      <version>1.0.8</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>7.0.1</version>
+      <version>7.1.0-M1</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>4.0.0</version>
+      <version>4.2.0-M1</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure-processor</artifactId>
-      <version>4.0.0</version>
+      <version>4.2.0-M1</version>
       <optional>true</optional>
     </dependency>
   </dependencies>
@@ -141,12 +142,12 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>4.0.0</version>
+        <version>4.2.0-M1</version>
       </plugin>
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.10.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
