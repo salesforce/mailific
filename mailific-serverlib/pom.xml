@@ -5,7 +5,7 @@
 
   <groupId>net.mailific</groupId>
   <artifactId>mailific-serverlib</artifactId>
-  <version>1.0.7</version>
+  <version>1.0.8</version>
 
   <name>Mailific SMTP Server Library</name>
   <description>Library for receiving email in Java</description>
@@ -53,10 +53,11 @@
           <plugin>
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.9.0</version>
+            <version>0.11.0</version>
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
             </configuration>
           </plugin>
           <plugin>
@@ -110,7 +111,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.2.7.Final</version>
+      <version>4.2.17.Final</version>
     </dependency>
 
   <!--  TEST DEPENDENCIES -->
@@ -130,7 +131,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.21.0</version>
+      <version>5.23.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -141,7 +142,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.10.0</version>
         <configuration>
           <java>
             <googleJavaFormat>
@@ -169,7 +170,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.13</version>
+        <version>0.8.15</version>
         <executions>
           <execution>
             <goals>
